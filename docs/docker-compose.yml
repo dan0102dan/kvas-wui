@@ -1,0 +1,19 @@
+services:
+  sphinx:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - USER=${USER}
+        - GROUP=${GROUP}
+        - GIT_TOKEN=${GIT_TOKEN}
+        - GIT_REPO=${GIT_REPO}
+        - UID=${UID}
+        - GID=${GID}
+    env_file:
+      - .env
+    volumes:
+      - .:/app/docs
+      - ../:/repo/
+    user: "${USER}:${GROUP}"
+

@@ -1,0 +1,24 @@
+/* Применение шрифта Helvetica ко всему тексту */
+body {
+    font-family: "Helvetica Neue", Arial, sans-serif;
+}
+
+/* При необходимости можно настроить шрифт для заголовков */
+h1, h2, h3, h4, h5, h6 {
+    font-family: "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Убираем ссылку на исходник */
+a[href*="_sources/index.rst.txt"] {
+    display: none;
+}
+
+.version-selector {
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+.version-selector select {
+    padding: 5px;
+    font-size: 14px;
+}

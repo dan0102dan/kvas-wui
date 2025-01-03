@@ -1,0 +1,12 @@
+sphinx
+sphinx_rtd_theme
+sphinxcontrib-fulltoc
+sphinxcontrib-htmlhelp
+sphinxcontrib-serializinghtml
+sphinxcontrib-qthelp
+sphinxcontrib-devhelp
+sphinxcontrib-jsmath
+sphinxcontrib-plantuml
+sphinxcontrib-bibtex
+sphinxcontrib-websupport
+sphinx-multiversion
