@@ -11,7 +11,7 @@ sys.path.insert(0, str(Path('..', 'src').resolve()))
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'Квас Pro'
+project = 'kvas-pro'
 copyright = 'Железа & Кo, 2024 - %Y гг.'
 author = 'Железа & Кo'
 release = '0.0.1-alpha-2'
@@ -25,6 +25,8 @@ extensions = [
     'sphinx.ext.todo',
     'sphinx_rtd_theme',
     'sphinx_multiversion',
+    'sphinx.ext.mathjax',  # Для математических формул
+    'sphinx.ext.imgmath',  # Для встраивания формул в PDF
 ]
 
 templates_path = ['_templates']
@@ -53,16 +55,12 @@ numfig_format = {
 }
 
 # Настройки для LaTeX
-latex_engine = 'xelatex'
-latex_output_dir = 'pdf'  # Указываем папку для сохранения PDF-файлов
+latex_engine = 'pdflatex'
 latex_elements = {
     'papersize': 'a4paper',
-    'pointsize': '10pt',
-        'preamble': r'''
-        \usepackage{fontspec}
-        \setmainfont{Liberation Sans}
-    ''',
+    'pointsize': '12pt',
     'figure_align': 'htbp',
+    'fncychap': '\\usepackage[Bjarne]{fncychap}',  # Оформление глав
 }
 
 # Настройки для EPUB

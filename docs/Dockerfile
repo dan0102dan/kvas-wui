@@ -16,11 +16,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         git \
         make \
         jq \
+        fontconfig \
         latexmk \
-        texlive-latex-base \
+        texlive-latex-recommended \
         texlive-latex-extra \
         texlive-xetex \
         texlive-lang-cyrillic \
+        texlive-fonts-recommended \
+        fonts-freefont-ttf \
         fonts-liberation && \
     rm -rf /var/lib/apt/lists/*
 

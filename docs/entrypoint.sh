@@ -35,9 +35,10 @@ cd ${GIT_PATH} || { echo "Ошибка: папка ${GIT_PATH} не найден
 
 echo "Текущий каталог: $(pwd)"
 echo "Содержимое каталога:"
-ls -la ./.git
+ls -la 
 echo "Список тегов:"
 git tag -l
+find / -type f | grep "FreeSerif"
 
 # Получаем список всех тегов
 TAGS=$(git tag -l --sort=-creatordate)
@@ -50,12 +51,12 @@ fi
 cd ${DOCS_PATH} || { echo "Ошибка: папка ${DOCS_PATH} не найдена"; exit 1; }
 
 # Очищаем предыдущую сборку (если Makefile существует)
-if [ -f "Makefile" ]; then
-    echo "Очистка предыдущей сборки..."
-    make clean || echo "Предупреждение: не удалось выполнить make clean"
-else
-    echo "Makefile не найден. Пропускаем очистку."
-fi
+# if [ -f "Makefile" ]; then
+#     echo "Очистка предыдущей сборки..."
+#     make clean || echo "Предупреждение: не удалось выполнить make clean"
+# else
+#     echo "Makefile не найден. Пропускаем очистку."
+# fi
 
 # Переходим в папку репозитория
 cd ${GIT_PATH} || { echo "Ошибка: папка ${GIT_PATH} не найдена"; exit 1; }
@@ -66,12 +67,18 @@ for TAG in $TAGS; do
     echo "Сборка версии $TAG..."
     git checkout tags/$TAG || { echo "Ошибка: не удалось переключиться на тег $TAG"; exit 1; }
     
+    # Переходим в папку репозитория
+    cd ${DOCS_PATH} || { echo "Ошибка: папка ${DOCS_PATH} не найдена"; exit 1; }
+
     # Выполняем сборку
     if [ -f "Makefile" ]; then
         make all || { echo "Ошибка: не удалось собрать документацию для версии $TAG"; exit 1; }
     else
         echo "Makefile не найден. Пропускаем сборку для версии $TAG."
     fi
+
+    # Переходим в папку репозитория
+    cd ${GIT_PATH} || { echo "Ошибка: папка ${GIT_PATH} не найдена"; exit 1; }
 
     # Возвращаемся на ветку master/main
     git checkout master || git checkout main || { echo "Ошибка: не удалось переключиться на master/main"; exit 1; }
@@ -84,7 +91,6 @@ cd ${DOCS_PATH} || { echo "Ошибка: папка ${DOCS_PATH} не найде
 if [ -f "Makefile" ]; then
     echo "Очистка временных файлов..."
     make clean || echo "Предупреждение: не удалось выполнить make clean"
-    rm -rf ${GIT_PATH}
 else
     echo "Makefile не найден. Пропускаем очистку."
 fi
