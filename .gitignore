@@ -3,6 +3,7 @@
 .bash_history
 .molot/
 packages/
+.DS_Store
 
 
 # Prerequisites
