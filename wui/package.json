@@ -2,7 +2,7 @@
   "name": "kvas-pro",
   "author": "dan0102dan",
   "version": "1.0.3",
-  "homepage": "https://dan0102dan.github.io/kvas-pro",
+  "homepage": "./",
   "dependencies": {
     "@mantine/core": "^7.15.2",
     "@mantine/hooks": "^7.15.2",

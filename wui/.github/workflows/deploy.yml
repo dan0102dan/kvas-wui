@@ -12,9 +12,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Modify App.tsx for HashRouter
+      - name: Modify BrowserRouter to HashRouter and change homepage
         run: |
           sed -i 's/BrowserRouter/HashRouter/' src/index.tsx
+          sed -i 's|"homepage": ".*"|"homepage": "https://dan0102dan.github.io/kvas-pro"|' package.json
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
