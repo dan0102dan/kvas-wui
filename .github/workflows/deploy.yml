@@ -1,4 +1,4 @@
-name: Deploy and Update Codes
+name: Build and Deploy
 
 on:
   push:
@@ -9,6 +9,9 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./wui
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
