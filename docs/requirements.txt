@@ -1,5 +1,7 @@
 sphinx
+furo
 sphinx_rtd_theme
+sphinxcontrib-jquery
 sphinxcontrib-fulltoc
 sphinxcontrib-htmlhelp
 sphinxcontrib-serializinghtml
@@ -10,3 +12,5 @@ sphinxcontrib-plantuml
 sphinxcontrib-bibtex
 sphinxcontrib-websupport
 sphinx-multiversion
+sphinx-autobuild
+gitpython

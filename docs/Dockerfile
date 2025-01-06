@@ -1,23 +1,24 @@
-# Используем официальный образ Python
-FROM python:3.9-slim AS build-env
+# Используем многостадийную сборку для минимизации размера образа
+# Первая стадия: сборка зависимостей
+FROM sphinxdoc/sphinx as builder
 
-ENV GIT_DISCOVERY_ACROSS_FILESYSTEM=1
-ARG UID GID USER GROUP
-ENV USER=${USER}
-ENV GROUP=${GROUP}
-ENV UID=${UID}
-ENV GID=${GID}
+# Устанавливаем переменные окружения
+ARG UID
+ARG GID
+ARG USER
+ARG GROUP
+ARG APP_NAME
 
-# Устанавливаем рабочий каталог
-WORKDIR /app/docs
+ENV APP_NAME=${APP_NAME}
 
 # Устанавливаем необходимые пакеты для сборки
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# Оптимизируем установку пакетов, объединяя команды и удаляя ненужные
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
         git \
         make \
         jq \
         fontconfig \
-        latexmk \
         texlive-latex-recommended \
         texlive-latex-extra \
         texlive-xetex \
@@ -25,33 +26,25 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         texlive-fonts-recommended \
         fonts-freefont-ttf \
         fonts-liberation && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Создаем пользователя и группу
 RUN groupadd -r --gid ${GID} ${GROUP} && \
     useradd -r --uid ${UID} --gid ${GID} -m -d /home/${USER} ${USER}
 
-# Копируем и устанавливаем зависимости Python
+# Устанавливаем рабочий каталог
+WORKDIR /${APP_NAME}/docs
+
+# Устанавливаем зависимости Python
 COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Устанавливаем переменные окружения
-ARG GIT_TOKEN GIT_REPO
-ENV GIT_TOKEN=${GIT_TOKEN}
-ENV GIT_REPO=${GIT_REPO}
-
-# Устанавливаем токен для доступа к приватному репозиторию
-RUN git config --global url."https://${GIT_TOKEN}@github.com".insteadOf "https://github.com" 
-
-# Копируем исходный код проекта
-COPY . .
-
 # Копируем и настраиваем entrypoint.sh от имени root
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh \
-    && mkdir -p /repo && chown -R ${UID}:${GID} /app \
-    && chown -R ${UID}:${GID} /repo 
+COPY --chown=root:root entrypoint.sh /entrypoint.sh
+
+# Устанавливаем права на скрипт
+RUN chmod +x /entrypoint.sh
 
 # Переключаемся на пользователя ${USER}
 USER ${USER}

@@ -6,14 +6,16 @@ services:
       args:
         - USER=${USER}
         - GROUP=${GROUP}
-        - GIT_TOKEN=${GIT_TOKEN}
-        - GIT_REPO=${GIT_REPO}
         - UID=${UID}
         - GID=${GID}
+        - APP_NAME=${APP_NAME}
+    image: master-sphinx 
+    container_name: kvaspro-sphinx
     env_file:
       - .env
     volumes:
-      - .:/app/docs
-      - ../:/repo/
-    user: "${USER}:${GROUP}"
-
+      - /home/master/develop/${APP_NAME}/docs:/${APP_NAME}/docs
+      - /home/master/develop/${APP_NAME}/.git:/${APP_NAME}/.git
+    user: "${UID}:${GID}"
+    ports:
+      - "9977:8000"

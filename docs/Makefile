@@ -3,11 +3,13 @@
 
 # Вы можете установить эти переменные из командной строки, а также
 # из окружения для первых двух.
-SPHINXOPTS    ?=
-SPHINXBUILD   = sphinx-build
-SOURCEDIR     = ./source
-BUILDDIR      = build
-TARGET_DIR    = /app/docs/ready  # Добавлена переменная для целевой директории, по умолчанию ./dist
+# SPHINXBUILD   = sphinx-build
+SPHINXOPTS    ?= 
+DOCS_ROOT     = /${APP_NAME}/docs
+SPHINXBUILD   = sphinx-multiversion
+SOURCEDIR     = $(DOCS_ROOT)/source
+BUILDDIR      = $(DOCS_ROOT)/build
+TARGET_DIR    = $(DOCS_ROOT)/ready
 
 # Помещаем эту цель первой, чтобы "make" без аргументов работал как "make help".
 help:
@@ -23,29 +25,37 @@ help:
 
 # Сборка HTML
 html:
-	$(SPHINXBUILD) -b html "$(SOURCEDIR)" "$(BUILDDIR)/html" $(SPHINXOPTS)
+	@rm -rf "$(BUILDDIR)/html"
+	@rm -rf "$(TARGET_DIR)/html"
+# $(SPHINXBUILD) -b html -d "$(BUILDDIR)/doctrees" "$(SOURCEDIR)" "$(BUILDDIR)/html"
+	$(SPHINXBUILD) "$(SOURCEDIR)" "$(BUILDDIR)/html" $(SPHINXOPTS)
+#@mkdir -p "$(TARGET_DIR)/html"
+#@echo "-----------------------------------------"
+#@mv "$(BUILDDIR)/html" "$(TARGET_DIR)" && echo "Документация успешно перемещена в $(TARGET_DIR)/html"
 	@echo "-----------------------------------------"
 	@echo "HTML документация успешно собрана."
 	@echo "-----------------------------------------"
 
 # Сборка EPUB
 epub:
-	$(SPHINXBUILD) -b epub "$(SOURCEDIR)" "$(BUILDDIR)/epub" $(SPHINXOPTS)
+	@rm -rf "$(BUILDDIR)/epub" "$(TARGET_DIR)/epub"
+	$(SPHINXBUILD) "$(SOURCEDIR)" "$(BUILDDIR)/epub" -b epub $(SPHINXOPTS)
 	@echo "-----------------------------------------"
 	@echo "EPUB документация успешно собрана."
 	@echo "-----------------------------------------"
 
 # Сборка PDF
 pdf:
-	$(SPHINXBUILD) -b latex "$(SOURCEDIR)" "$(BUILDDIR)/latex" $(SPHINXOPTS)
-	@TEXFILES=$$(find "$(BUILDDIR)/latex" -maxdepth 1 -name "*.tex" -print); \
+	@rm -rf "$(BUILDDIR)/pdf" "$(TARGET_DIR)/pdf"
+	$(SPHINXBUILD) "$(SOURCEDIR)" "$(BUILDDIR)/pdf" -b latex $(SPHINXOPTS)
+	@TEXFILES=$$(find "$(BUILDDIR)/pdf" -maxdepth 1 -name "*.tex" -print); \
 		if [ -z "$$TEXFILES" ]; then \
-			echo "Ошибка: не найден .tex файл в $(BUILDDIR)/latex. Проверьте настройки Sphinx и документацию."; \
+			echo "Ошибка: не найден .tex файл в $(BUILDDIR)/pdf. Проверьте настройки Sphinx и документацию."; \
 			exit 1; \
 		fi; \
 		for TEXFILE in $$TEXFILES; do \
 			echo "Собираю $$TEXFILE"; \
-			cd "$(BUILDDIR)/latex" && latexmk -xelatex -pdf /app/docs/$$TEXFILE; \
+			cd "$(BUILDDIR)/pdf" && latexmk -xelatex -pdf /app/docs/$$TEXFILE; \
 		done;
 	@echo "-----------------------------------------"
 	@echo "PDF документация успешно собрана."
@@ -59,18 +69,19 @@ clean:
 	@echo "-----------------------------------------"
 
 # Копирование собранных файлов в целевую директорию
-copy:
-	mkdir -p "$(TARGET_DIR)/html"
-	mkdir -p "$(TARGET_DIR)/epub"
-	mkdir -p "$(TARGET_DIR)/pdf"
-	cp -r "$(BUILDDIR)/html" "$(TARGET_DIR)/html"
-	cp -r "$(BUILDDIR)/epub"/*.epub "$(TARGET_DIR)/epub"
-	cp -r "$(BUILDDIR)/latex"/*.pdf "$(TARGET_DIR)/pdf"
+move:
+	@mkdir -p "$(TARGET_DIR)/html"
+	@mkdir -p "$(TARGET_DIR)/epub"
+	@mkdir -p "$(TARGET_DIR)/pdf"
+	@mv "$(BUILDDIR)/html" "$(TARGET_DIR)"
+	@mv "$(BUILDDIR)/epub"/*.epub "$(TARGET_DIR)/epub"
+	@mv "$(BUILDDIR)/pdf"/*.pdf "$(TARGET_DIR)/pdf"
+# rm -rf "$(BUILDDIR)"
 	@echo "-----------------------------------------"
 	@echo "Собранные файлы успешно скопированы в целевую директорию."
 	@echo "-----------------------------------------"
 
 # Полная сборка и копирование
-all: clean html epub pdf copy
+all: clean html epub pdf move
 
-.PHONY: all clean html epub pdf copy help
+.PHONY: all clean html epub pdf move help
