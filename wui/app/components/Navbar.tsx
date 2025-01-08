@@ -1,12 +1,12 @@
 import React from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { NavLink as RemixNavLink, useLocation } from '@remix-run/react'
 import {
     IconSun,
     IconSwitchHorizontal,
 } from '@tabler/icons-react'
 import { NavLink, ScrollArea, Popover, Select, useMantineColorScheme, MantineColorScheme } from '@mantine/core'
-import { useLang, availableTranslations } from '../../contexts'
-import { routes } from '../../pages/routes'
+import { useLang, availableTranslations } from '../contexts'
+import { routes } from '../routes/routes'
 
 interface NavbarProps {
     toggle: () => void
@@ -15,7 +15,6 @@ interface NavbarProps {
 const Navbar: React.FC<NavbarProps> = ({ toggle }) => {
     const { t, setLang } = useLang()
     const { colorScheme, setColorScheme } = useMantineColorScheme()
-    const navigate = useNavigate()
     const location = useLocation()
 
     return (
@@ -26,13 +25,12 @@ const Navbar: React.FC<NavbarProps> = ({ toggle }) => {
                     .map((route) => (
                         <NavLink
                             key={route.label}
+                            component={RemixNavLink}
+                            to={route.path}
                             label={t(`pages.${route.label}._`)}
                             leftSection={<route.icon size={20} stroke={1.5} />}
                             active={route.path === location.pathname}
-                            onClick={() => {
-                                toggle()
-                                navigate(route.path)
-                            }}
+                            onClick={toggle}
                             variant="light"
                         />
                     ))}

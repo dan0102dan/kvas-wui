@@ -1,8 +1,9 @@
+// app/components/Header.tsx
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from '@remix-run/react'
 import { Group, Burger, Code, Avatar } from '@mantine/core'
 import { IconUserCircle } from '@tabler/icons-react'
-import packageJson from '../../../package.json'
+import packageJson from '../../package.json'
 
 interface HeaderProps {
     opened: boolean
@@ -22,17 +23,17 @@ const Header: React.FC<HeaderProps> = ({ opened, toggle }) => {
 
     return (
         <Group
-            h='100%'
+            h="100%"
             px="md"
             align="center"
-            justify='space-between'
+            justify="space-between"
         >
             <Group>
                 <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
                 <Avatar
                     component={Link}
-                    to='/profile'
-                    color='initials'
+                    to="/profile"
+                    color="initials"
                     name={authorized}
                     radius="xl"
                 >
@@ -46,4 +47,5 @@ const Header: React.FC<HeaderProps> = ({ opened, toggle }) => {
         </Group>
     )
 }
+
 export default Header
