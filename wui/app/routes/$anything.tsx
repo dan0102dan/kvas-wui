@@ -1,4 +1,3 @@
-// app/routes/$anything.tsx
 import { useNavigate } from '@remix-run/react'
 import { Button, Container, Center, Stack, Title, Text } from '@mantine/core'
 import { IconArrowBack } from '@tabler/icons-react'

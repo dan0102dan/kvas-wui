@@ -1,6 +1,9 @@
 import '@mantine/core/styles.css'
-import { Links, LiveReload, Meta, Outlet, Scripts, ScrollRestoration } from "@remix-run/react"
+import '@mantine/notifications/styles.css'
+
+import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "@remix-run/react"
 import { MantineProvider, AppShell } from "@mantine/core"
+import { Notifications } from '@mantine/notifications'
 import { useDisclosure } from '@mantine/hooks'
 import { Header, Navbar } from './components'
 import { LangProvider } from "./contexts" // Предполагая, что вы переместите контексты в папку app/contexts
@@ -16,6 +19,7 @@ export default function App() {
       </head>
       <body>
         <MantineProvider defaultColorScheme='auto'>
+          <Notifications />
           <LangProvider>
             <AppShell
               header={{ height: { base: 60 } }}
@@ -40,7 +44,6 @@ export default function App() {
         </MantineProvider>
         <ScrollRestoration />
         <Scripts />
-        <LiveReload />
       </body>
     </html>
   )

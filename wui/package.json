@@ -14,10 +14,12 @@
   "dependencies": {
     "@mantine/core": "^7.15.3",
     "@mantine/hooks": "^7.15.3",
+    "@mantine/notifications": "^7.15.3",
     "@remix-run/node": "^2.15.2",
     "@remix-run/react": "^2.15.2",
     "@remix-run/serve": "^2.15.2",
-    "@tabler/icons-react": "^3.28.1",
+    "@tabler/icons-react": "3.17.0",
+    "axios": "^1.7.9",
     "isbot": "^4.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
