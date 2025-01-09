@@ -1,49 +1,38 @@
+// app/routes/_index.tsx
+import React, { useEffect } from 'react'
 import type { LoaderFunctionArgs } from '@remix-run/node'
 import { json } from '@remix-run/node'
-import { useEffect } from 'react'
 import { useLoaderData } from '@remix-run/react'
 import { Container, Flex, Title, Text, Button } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import { IconArrowRight, IconBrandTelegram, IconBrandGithub } from '@tabler/icons-react'
-import { getUserByKey, createUser } from '../utils/licenseApi.server'
-import type { IUserResponse } from '../utils/types'
+
+import { getSession, commitSession } from '../utils/session.server'
+import type { UserResponse } from '../api/licenseApi'
+import { getDaysLeft } from '../utils/date'
 import { useLang } from '../contexts'
 
-function getDaysLeft(expiration_date: string): number {
-  const now = new Date().getTime()
-  const exp = new Date(expiration_date).getTime()
-  if (isNaN(exp)) return 0
-  const diff = exp - now
-  return Math.max(Math.ceil(diff / (1000 * 60 * 60 * 24)), 0)
-}
-
 interface LoaderData {
-  user: IUserResponse
+  user: UserResponse | null
   showSubscriptionModal?: boolean
   subscriptionMessage?: string
+  visits?: number
 }
 
-export async function loader({ request }: LoaderFunctionArgs) {
-  const uniqueKey = 'MY-UNIQUE-KEY-1234'
+export const loader = async ({ request }: LoaderFunctionArgs) => {
+  const session = await getSession(request.headers.get('Cookie'))
+  let sessionUser = session.get('user') as UserResponse | undefined
 
-  let user = await getUserByKey(uniqueKey)
-  if (!user) {
-    user = await createUser({
-      service_code: 'someService',
-      email: 'some@email.com',
-      unique_key: uniqueKey,
-      architecture: 'x64',
-      count_of_purchases: 0,
-    })
+  if (!sessionUser) {
+    return json<LoaderData>({ user: null })
   }
 
   let showSubscriptionModal = false
   let subscriptionMessage = ''
-  const daysLeft = getDaysLeft(user.expiration_date)
 
-  user.type = 'free'
+  const daysLeft = getDaysLeft(sessionUser.expirationDate)
 
-  if (user.type === 'paid') {
+  if (sessionUser.userType === 'paid') {
     if (daysLeft === 0) {
       showSubscriptionModal = true
       subscriptionMessage = 'Ваша платная подписка закончилась. Продлить?'
@@ -51,42 +40,43 @@ export async function loader({ request }: LoaderFunctionArgs) {
       showSubscriptionModal = true
       subscriptionMessage = `Осталось дней: ${daysLeft}. Рекомендуем продлить подписку.`
     }
-  } else if (user.type === 'lifetime') {
-    // Lifetime => ничего не показываем
-  } else if (user.type === 'free') {
-    const cookieHeader = request.headers.get('Cookie') || ''
-    let visits = 1
-    if (cookieHeader.includes('visits=')) {
-      const match = cookieHeader.match(/visits=(\d+)/)
-      if (match) {
-        visits = parseInt(match[1], 10) + 1
-      }
-    }
+  } else if (sessionUser.userType === 'free') {
+    // Логика «каждый 9-й визит»
+    const visits = parseInt(session.get('visits') || '0', 10) + 1
 
     if (visits % 9 === 0) {
       showSubscriptionModal = true
-      subscriptionMessage = `Это ${visits} % 9 === 0 загрузка. Может, хотите приобрести подписку?`
+      subscriptionMessage = `Это ${visits}-ое посещение. Может, хотите приобрести подписку?`
     }
-    console.log(visits)
 
+    session.set('visits', visits.toString())
+
+    // Возвращаемся с Set-Cookie
     const headers = new Headers()
-    headers.append('Set-Cookie', `visits=${visits}; Path=/; HttpOnly;`)
+    headers.append('Set-Cookie', await commitSession(session))
 
     return json<LoaderData>(
-      { user, showSubscriptionModal, subscriptionMessage },
+      { user: sessionUser, showSubscriptionModal, subscriptionMessage, visits },
       { headers }
     )
   }
 
-  return json<LoaderData>({ user, showSubscriptionModal, subscriptionMessage })
+  // Если paid и дни > 0, или lifetime, или что-то ещё —
+  // мы просто вернём JSON, но НЕ забываем финально установить cookie
+  const headers = new Headers()
+  headers.append('Set-Cookie', await commitSession(session))
+
+  return json<LoaderData>(
+    { user: sessionUser, showSubscriptionModal, subscriptionMessage },
+    { headers }
+  )
 }
 
 export default function Home() {
   const { t } = useLang()
-  const { user, showSubscriptionModal, subscriptionMessage } = useLoaderData<LoaderData>()
+  const { showSubscriptionModal, subscriptionMessage } = useLoaderData<LoaderData>()
 
   useEffect(() => {
-    console.log('showSubscriptionModal', showSubscriptionModal, subscriptionMessage)
     if (showSubscriptionModal && subscriptionMessage) {
       notifications.show({
         title: 'Предупреждение о подписке',

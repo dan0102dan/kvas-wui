@@ -5,7 +5,7 @@ import {
     IconSwitchHorizontal,
 } from '@tabler/icons-react'
 import { NavLink, ScrollArea, Popover, Select, useMantineColorScheme, MantineColorScheme } from '@mantine/core'
-import { useLang, availableTranslations } from '../contexts'
+import { useLang, availableTranslations, Lang } from '../contexts'
 import { routes } from '../routes/routes'
 
 interface NavbarProps {
@@ -57,7 +57,7 @@ const Navbar: React.FC<NavbarProps> = ({ toggle }) => {
                             data={availableTranslations.map((e) => ({ label: t(`settings.language.${e}`), value: e }))}
                             placeholder={t('settings.language.placeholder')}
                             comboboxProps={{ withinPortal: false, position: 'top', offset: 0 }}
-                            onChange={(e) => e && setLang(e)}
+                            onChange={(e) => e && setLang(e as Lang)}
                         />
                     </Popover.Dropdown>
                 </Popover>

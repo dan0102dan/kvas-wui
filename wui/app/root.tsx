@@ -6,7 +6,7 @@ import { MantineProvider, AppShell } from "@mantine/core"
 import { Notifications } from '@mantine/notifications'
 import { useDisclosure } from '@mantine/hooks'
 import { Header, Navbar } from './components'
-import { LangProvider } from "./contexts" // Предполагая, что вы переместите контексты в папку app/contexts
+import { LangProvider } from './contexts'
 
 export default function App() {
   const [opened, { toggle }] = useDisclosure()
@@ -42,6 +42,7 @@ export default function App() {
             </AppShell>
           </LangProvider>
         </MantineProvider>
+
         <ScrollRestoration />
         <Scripts />
       </body>
