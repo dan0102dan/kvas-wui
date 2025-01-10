@@ -1,35 +1,53 @@
 import axios from 'axios'
-import { snakeToCamel } from '../utils'
+import { snakeToCamel, camelToSnake } from '../utils'
 
-export interface UserCreatePayload {
-    serviceCode: string
-    email: string
-    uniqueKey: string
-    architecture: string
-    purchaseCount: number
-}
+// export interface UserCreatePayload {
+//     serviceCode: string
+//     uniqueKey: string
+//     architecture: string
+//     model: string
+//     kvasVersion: string
+// }
 
 export interface UserResponse {
-    uniqueKey: string
-    email: string
-    activationDate: string
     userId: number
     serviceCode: string
-    userType: 'free' | 'paid' | 'lifetime' | 'other'
+    email: string | null
+    uniqueKey: string
+    architecture: string
+    model?: string
+    kvasVersion?: string
     purchaseCount: number
+    subscriptionType?: string[]
+    activationDate: string
     expirationDate: string
+    subscriptionIds?: number[]
+    userType?: 'free' | 'paid' | 'lifetime' | 'other'
 }
 
 const licenseApi = axios.create({
     baseURL: 'https://license.dnstkrv.ru',
 })
+
+// Request interceptor для конвертации camelCase в snake_case
+licenseApi.interceptors.request.use(config => {
+    if (config.data) {
+        config.data = camelToSnake(config.data)
+    }
+    return config
+}, error => {
+    return Promise.reject(error)
+})
+// Response interceptor для конвертации snake_case в camelCase
 licenseApi.interceptors.response.use(response => {
     if (response.data) {
         response.data = snakeToCamel(response.data)
     }
-    console.log('response', response)
     return response
+}, error => {
+    return Promise.reject(error)
 })
+
 
 export async function getUserByKey(uniqueKey: string): Promise<UserResponse | null> {
     try {
@@ -41,9 +59,4 @@ export async function getUserByKey(uniqueKey: string): Promise<UserResponse | nu
         }
         throw error
     }
-}
-
-export async function createUser(payload: UserCreatePayload): Promise<UserResponse> {
-    const response = await licenseApi.post<UserResponse>('/users/', payload)
-    return response.data
 }

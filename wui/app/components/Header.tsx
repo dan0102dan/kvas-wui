@@ -12,13 +12,8 @@ interface HeaderProps {
 export default function Header({ opened, toggle }: HeaderProps) {
     const { user } = useAuth()
 
-    const initials = user?.email
-        ? user.email
-            .split('@')[0]
-            .split('.')
-            .map((part) => part.charAt(0).toUpperCase())
-            .join('')
-            .slice(0, 2)
+    const initials = user?.userId
+        ? user.userId.toString().slice(0, 2)
         : null
 
     return (
@@ -32,7 +27,7 @@ export default function Header({ opened, toggle }: HeaderProps) {
                     aria-label={opened ? 'Закрыть меню' : 'Открыть меню'}
                 />
                 <Tooltip
-                    label={user?.email || 'Неавторизованный пользователь'}
+                    label={'Личный кабинет'}
                     position="bottom"
                     withArrow
                 >

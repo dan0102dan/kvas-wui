@@ -33,10 +33,9 @@ export const loader: LoaderFunction = async ({ request }) => {
     return json({ user: userData })
   }
 
-  const apiUser = await getUserByKey('123')
+  const apiUser = await getUserByKey('string')
 
   if (apiUser) {
-    // Сохраняем найденного пользователя в сессии
     session.set('user', apiUser)
     return json<AuthContextProps>(
       { user: apiUser },
@@ -45,7 +44,7 @@ export const loader: LoaderFunction = async ({ request }) => {
   }
 
   session.unset('user')
-  return json({ user: undefined }, { headers: { 'Set-Cookie': await commitSession(session) } })
+  return json<AuthContextProps>({ user: undefined }, { headers: { 'Set-Cookie': await commitSession(session) } })
 }
 
 export default function App() {
