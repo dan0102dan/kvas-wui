@@ -1,4 +1,4 @@
-// src/routes/profile.tsx
+// app/routes/profile.tsx
 import type { LoaderFunction, ActionFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
 import { Form, useActionData, useLoaderData, useNavigation } from '@remix-run/react'
@@ -8,23 +8,24 @@ import { getSession, commitSession, destroySession } from '../utils/session.serv
 import { getUserByKey, createUser } from '../api/licenseApi'
 import type { UserResponse } from '../api/licenseApi'
 
-// Loader
 export const loader: LoaderFunction = async ({ request }) => {
     const session = await getSession(request.headers.get('Cookie'))
     const userData = session.get('user') as UserResponse | undefined
 
-    if (!userData) {
+    if (userData) {
+        return json({ user: userData })
+    }
+
+    // Пример: пытаемся найти пользователя по ключу «123» (у вас так было)
+    const apiUser = await getUserByKey('123')
+    if (!apiUser) {
+        // Нет пользователя — возвращаем null
         return json({ user: null })
     }
 
-    const apiUser = await getUserByKey('123')
-
-    if (!apiUser) {
-        session.unset('user')
-        return json({ user: null }, { headers: { 'Set-Cookie': await commitSession(session) } })
-    }
-
-    return json({ user: apiUser })
+    // Или очищаем сессию, если логика предполагает
+    session.unset('user')
+    return json({ user: null }, { headers: { 'Set-Cookie': await commitSession(session) } })
 }
 
 export const action: ActionFunction = async ({ request }) => {
@@ -35,23 +36,27 @@ export const action: ActionFunction = async ({ request }) => {
 
     const session = await getSession(request.headers.get('Cookie'))
 
+    // Логаут
     if (logout) {
         return redirect('/profile', {
             headers: { 'Set-Cookie': await destroySession(session) },
         })
     }
 
+    // Проверяем обязательные поля
     if (!uniqueKey || !email) {
         return json({ error: 'Укажите уникальный ключ и email' }, { status: 400 })
     }
 
-    let apiUser: UserResponse | null
+    // Пытаемся найти пользователя
+    let apiUser: UserResponse | null = null
     try {
         apiUser = await getUserByKey(uniqueKey)
     } catch (err) {
         return json({ error: 'Ошибка при запросе пользователя' }, { status: 500 })
     }
 
+    // Если пользователь не найден — создаём
     if (!apiUser) {
         const createPayload = {
             serviceCode: 'my-service',
@@ -60,7 +65,6 @@ export const action: ActionFunction = async ({ request }) => {
             architecture: 'x64',
             purchaseCount: 0,
         }
-
         try {
             apiUser = await createUser(createPayload)
         } catch (err) {
@@ -68,8 +72,11 @@ export const action: ActionFunction = async ({ request }) => {
         }
     }
 
+    // Сохраняем пользователя в сессию
     session.set('user', apiUser)
 
+    // Редиректим на эту же страницу /profile,
+    // чтобы loader снова прочитал сессию.
     return redirect('/profile', {
         headers: {
             'Set-Cookie': await commitSession(session),
@@ -77,7 +84,6 @@ export const action: ActionFunction = async ({ request }) => {
     })
 }
 
-// Компонент страницы профиля
 export default function ProfilePage() {
     const { user } = useLoaderData<{ user: UserResponse | null }>()
     const actionData = useActionData<{ error?: string }>()
@@ -88,7 +94,9 @@ export default function ProfilePage() {
     if (!user) {
         return (
             <Container size="xs">
-                <Title order={2} mb="md">Авторизация (укажите uniqueKey и email)</Title>
+                <Title order={2} mb="md">
+                    Авторизация (укажите uniqueKey и email)
+                </Title>
 
                 {actionData?.error && (
                     <Alert color="red" mb="md">
@@ -119,11 +127,16 @@ export default function ProfilePage() {
         )
     }
 
+    // Если user есть — показываем профиль
     return (
         <Container>
             <Title order={2}>Личный кабинет</Title>
-            <Text mt="md">Вы авторизованы как: <b>{user.email}</b></Text>
-            <Text>Ваш uniqueKey: <b>{user.uniqueKey}</b></Text>
+            <Text mt="md">
+                Вы авторизованы как: <b>{user.email}</b>
+            </Text>
+            <Text>
+                Ваш uniqueKey: <b>{user.uniqueKey}</b>
+            </Text>
             <Text>userType: <b>{user.userType}</b></Text>
 
             <Form method="post" style={{ marginTop: 20 }}>

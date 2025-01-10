@@ -1,13 +1,8 @@
-import { useState, useEffect, useMemo } from 'react'
-import {
-    Link,
-    useFetcher,
-    useNavigation,
-} from '@remix-run/react'
-import { Group, Burger, Code, Avatar, Loader, Tooltip } from '@mantine/core'
+import { Group, Burger, Code, Avatar, Tooltip } from '@mantine/core'
+import { Link } from '@remix-run/react'
 import { IconUserCircle } from '@tabler/icons-react'
-import type { UserResponse } from '../api/licenseApi'
 import packageJson from '../../package.json'
+import { useAuth } from '../contexts/Auth'
 
 interface HeaderProps {
     opened: boolean
@@ -15,41 +10,19 @@ interface HeaderProps {
 }
 
 export default function Header({ opened, toggle }: HeaderProps) {
-    const [user, setUser] = useState<UserResponse | null>(null)
-    const fetcher = useFetcher()
-    const navigation = useNavigation()
+    const { user } = useAuth()
 
-    useEffect(() => {
-        fetcher.load('/profile')
-    }, [fetcher])
-
-    useEffect(() => {
-        const data = fetcher.data as { user: UserResponse } | undefined
-        if (data && data.user) {
-            setUser(data.user)
-        }
-    }, [fetcher])
-
-    const isLoadingProfile = useMemo(() => {
-        return navigation.state === 'loading' && navigation.location?.pathname === '/profile'
-    }, [navigation])
-
-    const initials = useMemo(() => {
-        if (user?.email) {
-            const nameParts = user.email.split('@')[0].split('.')
-            const initials = nameParts.map(part => part.charAt(0).toUpperCase()).join('')
-            return initials.slice(0, 2)
-        }
-        return null
-    }, [user])
+    const initials = user?.email
+        ? user.email
+            .split('@')[0]
+            .split('.')
+            .map((part) => part.charAt(0).toUpperCase())
+            .join('')
+            .slice(0, 2)
+        : null
 
     return (
-        <Group
-            h="100%"
-            px="md"
-            align="center"
-            justify="space-between"
-        >
+        <Group h="100%" px="md" align="center" justify="space-between">
             <Group>
                 <Burger
                     opened={opened}
@@ -58,7 +31,11 @@ export default function Header({ opened, toggle }: HeaderProps) {
                     size="sm"
                     aria-label={opened ? 'Закрыть меню' : 'Открыть меню'}
                 />
-                <Tooltip label={user?.email || 'Неавторизованный пользователь'} position="bottom" withArrow>
+                <Tooltip
+                    label={user?.email || 'Неавторизованный пользователь'}
+                    position="bottom"
+                    withArrow
+                >
                     <Avatar
                         component={Link}
                         to="/profile"
@@ -66,13 +43,7 @@ export default function Header({ opened, toggle }: HeaderProps) {
                         radius="xl"
                         aria-label="Профиль пользователя"
                     >
-                        {isLoadingProfile ? (
-                            <Loader color="blue" size={20} />
-                        ) : user?.email ? (
-                            initials
-                        ) : (
-                            <IconUserCircle size={20} />
-                        )}
+                        {user ? initials : <IconUserCircle size={20} />}
                     </Avatar>
                 </Tooltip>
             </Group>

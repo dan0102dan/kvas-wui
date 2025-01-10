@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { snakeToCamel } from '../utils'
 
 export interface UserCreatePayload {
     serviceCode: string
@@ -21,6 +22,13 @@ export interface UserResponse {
 
 const licenseApi = axios.create({
     baseURL: 'https://license.dnstkrv.ru',
+})
+licenseApi.interceptors.response.use(response => {
+    if (response.data) {
+        response.data = snakeToCamel(response.data)
+    }
+    console.log('response', response)
+    return response
 })
 
 export async function getUserByKey(uniqueKey: string): Promise<UserResponse | null> {
