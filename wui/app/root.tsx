@@ -12,7 +12,7 @@ import {
   useLoaderData,
 } from '@remix-run/react'
 
-import { MantineProvider, AppShell } from '@mantine/core'
+import { MantineProvider, AppShell, ColorSchemeScript } from '@mantine/core'
 import { Notifications } from '@mantine/notifications'
 import { useDisclosure } from '@mantine/hooks'
 
@@ -55,8 +55,11 @@ export default function App() {
   return (
     <html lang="ru">
       <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
         <Links />
+        <ColorSchemeScript defaultColorScheme="auto" />
       </head>
       <body>
         <MantineProvider defaultColorScheme="auto">

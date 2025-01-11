@@ -95,6 +95,9 @@ export default function ProfilePage() {
                 Ваш uniqueKey: <b>{user.uniqueKey}</b>
             </Text>
             <Text>userType: <b>{user.userType}</b></Text>
+            {Object.keys(user).map(key => (
+                <Text>{key}: <b>{user[key as keyof UserResponse]}</b></Text>
+            ))}
 
             <Form method="post" style={{ marginTop: 20 }}>
                 <input type="hidden" name="logout" value="1" />
