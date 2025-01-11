@@ -4,7 +4,7 @@ import {
     IconSun,
     IconSwitchHorizontal,
 } from '@tabler/icons-react'
-import { NavLink, ScrollArea, Popover, Select, useMantineColorScheme, MantineColorScheme } from '@mantine/core'
+import { NavLink, ScrollArea, Popover, Select, useMantineColorScheme, MantineColorScheme, Divider } from '@mantine/core'
 import { useLang, availableTranslations, Lang } from '../contexts'
 import { routes } from '../routes/routes'
 
@@ -36,6 +36,7 @@ const Navbar: React.FC<NavbarProps> = ({ toggle }) => {
                     ))}
             </ScrollArea>
 
+            <Divider />
             <>
                 <Popover
                     trapFocus
