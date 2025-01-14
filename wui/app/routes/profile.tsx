@@ -26,7 +26,7 @@ export const action: ActionFunction = async ({ request }) => {
         return json({ error: 'Укажите уникальный ключ и email' }, { status: 400 })
     }
 
-    let apiUser: UserResponse | null = null
+    let apiUser: UserResponse | undefined
     try {
         apiUser = await getUserByKey(uniqueKey)
     } catch (err) {
@@ -96,7 +96,7 @@ export default function ProfilePage() {
             </Text>
             <Text>userType: <b>{user.userType}</b></Text>
             {Object.keys(user).map(key => (
-                <Text>{key}: <b>{user[key as keyof UserResponse]}</b></Text>
+                <Text key={key}>{key}: <b>{user[key as keyof UserResponse]}</b></Text>
             ))}
 
             <Form method="post" style={{ marginTop: 20 }}>

@@ -22,11 +22,11 @@ export interface UserResponse {
     activationDate: string
     expirationDate: string
     subscriptionIds?: number[]
-    userType?: 'free' | 'paid' | 'lifetime' | 'other'
+    userType?: 'freeTrial' | 'paid' | 'lifetime' | 'freeBase'
 }
 
 const licenseApi = axios.create({
-    baseURL: 'https://license.dnstkrv.ru',
+    baseURL: 'https://license.dnstkrv.ru/api/v1',
 })
 
 // Request interceptor для конвертации camelCase в snake_case
@@ -49,14 +49,11 @@ licenseApi.interceptors.response.use(response => {
 })
 
 
-export async function getUserByKey(uniqueKey: string): Promise<UserResponse | null> {
+export async function getUserByKey(uniqueKey: string): Promise<UserResponse | undefined> {
     try {
         const response = await licenseApi.get<UserResponse>(`/users/${uniqueKey}`)
         return response.data
     } catch (error: any) {
-        if (error.response?.status === 404) {
-            return null
-        }
         throw error
     }
 }

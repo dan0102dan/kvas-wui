@@ -21,7 +21,6 @@ const Navbar: React.FC<NavbarProps> = ({ toggle }) => {
         <>
             <ScrollArea style={{ flexGrow: 1 }}>
                 {routes
-                    .filter((route) => route.path !== '*')
                     .map((route) => (
                         <NavLink
                             key={route.label}

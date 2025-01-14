@@ -2,7 +2,6 @@ import { Container, Flex, Title, Text, Button } from '@mantine/core'
 import { IconArrowRight, IconBrandTelegram, IconBrandGithub } from '@tabler/icons-react'
 import { useLang } from '../contexts'
 
-
 export default function Home() {
   const { t } = useLang()
 

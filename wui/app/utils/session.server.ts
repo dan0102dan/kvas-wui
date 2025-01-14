@@ -1,7 +1,6 @@
 import { createCookieSessionStorage } from '@remix-run/node'
 
-// При сборке нужно заменить из process.env.SESSION_SECRET !!!
-const SESSION_SECRET = process.env.SESSION_SECRET || 'SUPER_SECRET_KEY_ABC'
+const SESSION_SECRET = '2fa68c4bd16841bf3ad26d960e53626f99e07569e674b8174f3dbb29a5a99074'
 
 export const { getSession, commitSession, destroySession } = createCookieSessionStorage({
     cookie: {
