@@ -9,7 +9,7 @@ interface HeaderProps {
     toggle: () => void
 }
 
-export default function Header({ opened, toggle }: HeaderProps) {
+const Header: React.FC<HeaderProps> = ({ opened, toggle }) => {
     const { user } = useAuth()
 
     const initials = user?.userId
@@ -47,3 +47,5 @@ export default function Header({ opened, toggle }: HeaderProps) {
         </Group>
     )
 }
+
+export default Header

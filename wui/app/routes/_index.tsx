@@ -22,7 +22,7 @@ import {
 import { NetworkBackground } from '../components'
 import { useLang } from '../contexts'
 
-export default function Home() {
+const Home: React.FC = () => {
   const { t } = useLang()
 
   return (
@@ -146,3 +146,5 @@ export default function Home() {
     </>
   )
 }
+
+export default Home

@@ -1,8 +1,8 @@
 import React, { createContext, useContext, ReactNode } from 'react'
-import type { UserResponse } from '../api/licenseApi'
+import type { User } from '../api/licenseApi'
 
 export interface AuthContextProps {
-    user: UserResponse | undefined
+    user: User | undefined
 }
 
 interface AuthProviderProps extends AuthContextProps {

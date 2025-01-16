@@ -28,8 +28,8 @@ interface Particle {
 const NetworkBackground: React.FC<NetworkBackgroundProps> = ({
   numberOfNodes = 25,
   lineDistance = 130,
-  dotColor = 'rgba(173, 216, 230, 0.3)',
-  lineColor = 'rgba(173, 216, 230, 0.15)',
+  dotColor = 'rgba(173, 216, 230, 0.15)',
+  lineColor = 'rgba(173, 216, 230, 0.1)',
   baseDotSize = 4,
   sizeGrowthFactor = 0.3,
   animationSpeed = 1.0,

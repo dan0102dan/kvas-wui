@@ -25,7 +25,7 @@ function Illustration(props: React.ComponentPropsWithoutRef<'svg'>) {
     )
 }
 
-export default function NothingFound() {
+const NothingFound: React.FC = () => {
     const navigate = useNavigate()
     const { t } = useLang()
 
@@ -47,3 +47,5 @@ export default function NothingFound() {
         </Container>
     )
 }
+
+export default NothingFound

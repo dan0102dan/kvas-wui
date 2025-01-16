@@ -9,7 +9,7 @@ import { snakeToCamel, camelToSnake } from '../utils'
 //     kvasVersion: string
 // }
 
-export interface UserResponse {
+export interface User {
     userId: number
     serviceCode: string
     email: string | null
@@ -23,6 +23,13 @@ export interface UserResponse {
     expirationDate: string
     subscriptionIds?: number[]
     userType?: 'freeTrial' | 'paid' | 'lifetime' | 'freeBase'
+}
+export interface Plan {
+    planId: number,
+    name: string,
+    price: number,
+    billing_cycle: string,
+    features: string
 }
 
 const licenseApi = axios.create({
@@ -49,9 +56,18 @@ licenseApi.interceptors.response.use(response => {
 })
 
 
-export async function getUserByKey(uniqueKey: string): Promise<UserResponse | undefined> {
+export async function getUserByKey(uniqueKey: string): Promise<User> {
     try {
-        const response = await licenseApi.get<UserResponse>(`/users/${uniqueKey}`)
+        const response = await licenseApi.get<User>(`/users/${uniqueKey}`)
+        return response.data
+    } catch (error: any) {
+        throw error
+    }
+}
+
+export async function getPlans(): Promise<Plan[]> {
+    try {
+        const response = await licenseApi.get<Plan[]>(`/plans`)
         return response.data
     } catch (error: any) {
         throw error

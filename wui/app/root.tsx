@@ -1,5 +1,6 @@
 import '@mantine/core/styles.css'
 import '@mantine/notifications/styles.css'
+import '@mantine/carousel/styles.css'
 
 import type { LoaderFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
@@ -10,10 +11,7 @@ import { Notifications } from '@mantine/notifications'
 import { useDisclosure } from '@mantine/hooks'
 
 import { Header, Navbar } from './components'
-import {
-  type AuthContextProps,
-  LangProvider, AuthProvider
-} from './contexts'
+import { type AuthContextProps, LangProvider, AuthProvider } from './contexts'
 import { getSession, commitSession } from './utils'
 
 
@@ -24,22 +22,16 @@ export const loader: LoaderFunction = async ({ request }) => {
   if (user) {
     return json({ user })
   }
-  // remove this
-  return json({
-    user: {
-      email: '',
-    }
-  })
 
   session.unset('user')
   const url = new URL(request.url)
-  if (url.pathname !== '/setup')
+  if (['/setup', '/contacts'].every(e => e !== url.pathname))
     return redirect('/setup', { headers: { 'Set-Cookie': await commitSession(session) } })
 
   return json<AuthContextProps>({ user: undefined }, { headers: { 'Set-Cookie': await commitSession(session) } })
 }
 
-export default function App() {
+const App: React.FC = () => {
   const [opened, { toggle }] = useDisclosure()
 
   const { user } = useLoaderData<AuthContextProps>()
@@ -87,3 +79,5 @@ export default function App() {
     </html>
   )
 }
+
+export default App

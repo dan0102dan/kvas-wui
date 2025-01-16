@@ -1,10 +1,13 @@
-import { useEffect } from 'react'
+// app/routes/setup.tsx
+
+import React, { useEffect, useState } from 'react'
 import type { LoaderFunction, ActionFunction } from '@remix-run/node'
 import { redirect, json } from '@remix-run/node'
 import {
     Form,
     useLoaderData,
-    useActionData,
+    useNavigation,
+    NavLink,
 } from '@remix-run/react'
 import {
     Container,
@@ -13,53 +16,51 @@ import {
     Button,
     Stepper,
     Group,
-    Box
+    Box,
+    Paper,
+    Title,
+    Divider,
+    Anchor,
+    Card,
 } from '@mantine/core'
-import { IconCheck, IconMailOpened } from '@tabler/icons-react'
+import { IconCheck } from '@tabler/icons-react'
 import { notifications } from '@mantine/notifications'
+import { Carousel } from '@mantine/carousel'
 
 import { getSession, commitSession } from '~/utils/session.server'
-import type { UserResponse } from '~/api/licenseApi'
+import type { User, Plan } from '~/api/licenseApi'
+import { getPlans } from '~/api/licenseApi'
 
 // ===============================
-// Фейковые API‑функции (эмуляция запросов)
+// Вспомогательные API-функции (эмуляция)
 // ===============================
-
-/** 1) Проверка ошибок сервера */
-async function apiCheckServerErrors(): Promise<{ hasErrors: boolean; error?: string }> {
-    // С вероятностью 30% возвращаем ошибки
-    const hasErrors = Math.random() > 0.3
+async function apiCheckServerErrors() {
+    // С вероятностью 30% возвращаем ошибку
+    const hasErrors = Math.random() > 0.7
     return hasErrors
         ? { hasErrors: true, error: 'Ошибка подключения к базе данных' }
         : { hasErrors: false }
 }
 
-/** 2) Проверка интернет-соединения */
-async function apiCheckInternet(): Promise<{ online: boolean }> {
-    // С вероятностью 20% симулируем отсутствие интернета
-    const online = Math.random() >= 0.2
+async function apiCheckInternet() {
+    // С вероятностью 20% эмуляция отсутствия интернета
+    const online = Math.random() > 0.2
     return { online }
 }
 
-/** 3) Проверка инициализации сервера */
-async function apiCheckInitialization(): Promise<{ initialized: boolean }> {
+async function apiCheckInitialization() {
     // Эмуляция: всегда true
     return { initialized: true }
 }
 
-/** 4) Авторизация пользователя по email и коду, возвращает данные пользователя и тип подписки */
-interface AuthorizeResponse {
-    user: UserResponse
-    subscription: 'perpetual' | 'trial' | 'basic' | 'paid'
-    expiryDate?: string
-}
-async function apiAuthorizeUser(email: string, code: string): Promise<AuthorizeResponse> {
+async function apiAuthorizeUser(email: string, code: string) {
     // Имитируем задержку
-    await new Promise((resolve) => setTimeout(resolve, 500))
-    const subscriptions: AuthorizeResponse['subscription'][] = ['perpetual', 'trial', 'basic', 'paid']
-    const subscription = subscriptions[Math.floor(Math.random() * subscriptions.length)]
-    const user: UserResponse = {
-        userId: Math.floor(Math.random() * 100000),
+    await new Promise((resolve) => setTimeout(resolve, 300))
+    // Случайно выбираем один из вариантов
+    const possibleSubs = ['perpetual', 'trial', 'basic', 'paid'] as const
+    const subscription = possibleSubs[Math.floor(Math.random() * possibleSubs.length)]
+    const user: User = {
+        userId: Math.floor(Math.random() * 99999),
         uniqueKey: 'FAKE-UNIQUE-KEY-SETUP',
         serviceCode: 'test-service',
         email,
@@ -68,271 +69,477 @@ async function apiAuthorizeUser(email: string, code: string): Promise<AuthorizeR
         activationDate: new Date().toISOString().split('T')[0],
         expirationDate:
             subscription === 'paid'
-                ? new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+                ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
                 : '2099-12-31',
     }
     return { user, subscription, expiryDate: user.expirationDate }
 }
 
-/** 5) Конфигуратор начальной настройки (DNS и Интернет) */
-interface ConfiguratorParams {
-    dns: string
-    internet: string
-}
-async function apiInitialConfigurator(params: ConfiguratorParams): Promise<{ success: boolean }> {
-    await new Promise((resolve) => setTimeout(resolve, 500))
-    console.log('(DEBUG) Конфигурация с параметрами:', params)
+async function apiInitialConfigurator(params: { dns: string; internet: string }) {
+    // «Настройка» с задержкой
+    await new Promise((resolve) => setTimeout(resolve, 300))
+    console.log('(DEBUG) config with params: ', params)
     return { success: true }
 }
 
-/** Генерация и проверка кода */
-function generateRandomCode() {
-    return String(Math.floor(1000 + Math.random() * 9000)) // 4-значный код
-}
-function verifyCode(input: string, storedCode: string) {
-    return input === storedCode
-}
-
-/** Проверка корректности email */
+// ===============================
+// Утилиты
+// ===============================
 function isValidEmail(email: string): boolean {
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    return regex.test(email)
+    const re = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
+    return re.test(email)
+}
+function generateRandomCode() {
+    return String(Math.floor(1000 + Math.random() * 9000)) // 4-значный
+}
+function verifyCode(input: string, stored: string) {
+    return input === stored
 }
 
-// ------------------
-// Типы данных для Setup
-// ------------------
+// ===============================
+// Типы
+// ===============================
 interface SetupSessionData {
-    step: 1 | 2 | 3 | 4
+    step: 1 | 2 | 3
     email?: string
     code?: string
-    subscriptionChoice?: 'trial' | 'basic' | 'paid'
-    authorizedUser?: UserResponse
+    subscriptionChoice?: string
+    authorizedUser?: User
 }
 
 interface LoaderData {
-    error?: string
-}
-interface ActionData {
-    step: 1 | 2 | 3 | 4
-    error?: string
+    step: 1 | 2 | 3
+    plans: Plan[]
+    errors: string[] | null
+    success: string | null
 }
 
-
+//
+// Loader
+//
 export const loader: LoaderFunction = async ({ request }) => {
     const session = await getSession(request.headers.get('Cookie'))
 
-    // Если пользователь уже авторизован, перенаправляем на главную страницу.
+    // Если пользователь уже авторизован - уходим на главную
     if (session.get('user')) {
         return redirect('/')
     }
 
-    // 1) Проверяем наличие ошибок на сервере.
+    // Соберём ошибки
+    const loaderErrors: string[] = []
     const serverCheck = await apiCheckServerErrors()
-    if (serverCheck.hasErrors) {
-        return json<LoaderData>(
-            { error: serverCheck.error },
-            { headers: { 'Set-Cookie': await commitSession(session) } }
-        )
+    if (serverCheck.hasErrors && serverCheck.error) {
+        loaderErrors.push(serverCheck.error)
     }
 
-    // 2) Проверяем интернет-соединение.
-    const internetStatus = await apiCheckInternet()
-    if (!internetStatus.online) {
-        return json<LoaderData>(
-            { error: 'Нет соединения с интернетом. Проверьте связь.' },
-            { headers: { 'Set-Cookie': await commitSession(session) } }
-        )
+    const net = await apiCheckInternet()
+    if (!net.online) {
+        loaderErrors.push('Нет соединения с интернетом. Проверьте связь.')
     }
 
-    // 3) Проверяем, завершена ли инициализация.
-    const initStatus = await apiCheckInitialization()
-    if (!initStatus.initialized) {
-        return json<LoaderData>({}, { headers: { 'Set-Cookie': await commitSession(session) } })
+    const init = await apiCheckInitialization()
+    if (!init.initialized) {
+        loaderErrors.push('Сервер не готов к работе. Попробуйте позже.')
     }
 
-    const setupData = session.get('setupData') as SetupSessionData | undefined
+    // Пытаемся получить планы
+    let plans: Plan[] = []
+    try {
+        plans = await getPlans()
+    } catch (error) {
+        loaderErrors.push('Не удалось загрузить тарифные планы. Попробуйте позже.')
+    }
+
+    // Если в session были зафлешены ошибки или успех — добавим их
+    const flashErrors = session.get('errors') as string[] | null
+    const flashSuccess = session.get('success') as string | null
+
+    const allErrors = [...(flashErrors || []), ...loaderErrors]
+
+    // Считываем шаг из session.setupData
+    const setupData = (session.get('setupData') || {}) as SetupSessionData
+    const currentStep = setupData.step || 1
 
     return json<LoaderData>(
-        { error: session.get('setupError') || null },
+        {
+            step: currentStep,
+            plans: plans || [],
+            errors: allErrors.length ? allErrors : null,
+            success: flashSuccess || null,
+        },
         { headers: { 'Set-Cookie': await commitSession(session) } }
     )
 }
 
+//
+// Action
+//
 export const action: ActionFunction = async ({ request }) => {
     const session = await getSession(request.headers.get('Cookie'))
     const formData = await request.formData()
-    const actionType = String(formData.get('actionType'))
+    const actionType = formData.get('actionType')?.toString() || ''
 
-    // return json({ step: 3 })
-
-    // Если нажата кнопка «Повторить проверку»
-    if (actionType === 'retry') {
-        return redirect('/setup', { headers: { 'Set-Cookie': await commitSession(session) } })
-    }
-
+    // Если нажата кнопка «Отправить отчёт об ошибке»
     if (actionType === 'sendErrorReport') {
-        return redirect('/contactus', { headers: { 'Set-Cookie': await commitSession(session) } })
+        return redirect('/contacts', {
+            headers: { 'Set-Cookie': await commitSession(session) },
+        })
     }
 
+    // Достаём нашу «сессию» настройки
     const setupData = (session.get('setupData') || {}) as SetupSessionData
     let { step } = setupData
     if (!step) step = 1
 
+    const errors: string[] = []
+
     switch (step) {
         case 1: {
-            // Шаг 1: Ввод email (с проверкой формата)
-            const email = formData.get('email')?.toString().trim() || ''
-            if (!email) {
-                session.set('setupError', 'Не указан email')
-                break
+            // Две кнопки: "sendCode" или "confirmCode"
+            if (actionType === 'sendCode') {
+                const email = (formData.get('email') || '').toString().trim()
+                if (!email) errors.push('Не указан email')
+                else if (!isValidEmail(email)) errors.push('Неверный формат email')
+
+                if (errors.length > 0) {
+                    // Записываем во flash
+                    session.flash('errors', errors)
+                    return redirect('/setup', {
+                        headers: { 'Set-Cookie': await commitSession(session) },
+                    })
+                }
+
+                // Генерируем код
+                const code = generateRandomCode()
+                setupData.email = email
+                setupData.code = code
+                setupData.step = 1
+                session.set('setupData', setupData)
+
+                // "Отправили" код. Можно зафлешить «Код отправлен...»
+                session.flash('success', `Код отправлен на ${email}`)
+                return redirect('/setup', {
+                    headers: { 'Set-Cookie': await commitSession(session) },
+                })
             }
-            if (!isValidEmail(email)) {
-                session.set('setupError', 'Неверный формат email')
-                break
+
+            if (actionType === 'confirmCode') {
+                const inputCode = (formData.get('code') || '').toString().trim()
+                if (!setupData.email) errors.push('Email не задан (сессия пуста)')
+                if (!setupData.code) errors.push('Код не сгенерирован')
+                if (!inputCode) errors.push('Не введён код')
+
+                if (setupData.code && inputCode && !verifyCode(inputCode, setupData.code)) {
+                    errors.push('Неверный код')
+                }
+
+                if (errors.length > 0) {
+                    session.flash('errors', errors)
+                    return redirect('/setup', {
+                        headers: { 'Set-Cookie': await commitSession(session) },
+                    })
+                }
+
+                // Всё хорошо, переходим на 2 шаг
+                setupData.step = 2
+                session.set('setupData', setupData)
+                return redirect('/setup', {
+                    headers: { 'Set-Cookie': await commitSession(session) },
+                })
             }
-            // Генерируем код и переходим к шагу 2.
-            const code = generateRandomCode()
-            setupData.step = 2
-            setupData.email = email
-            setupData.code = code
-            session.set('setupData', setupData)
-            console.log(`(DEBUG) Отправляем код "${code}" на почту: ${email}`)
-            break
+
+            // Если ни sendCode, ни confirmCode — просто редиректим
+            return redirect('/setup', {
+                headers: { 'Set-Cookie': await commitSession(session) },
+            })
         }
+
         case 2: {
-            // Шаг 2: Ввод кода подтверждения
-            const inputCode = formData.get('code')?.toString().trim() || ''
-            if (!inputCode) {
-                session.set('setupError', 'Не введён код')
-                break
+            // Пользователь кликает «Выбрать» на карточке тарифа
+            const subscriptionChoice = formData.get('subscriptionChoice')?.toString()
+            if (!subscriptionChoice) {
+                errors.push('Не выбран тариф')
+                session.flash('errors', errors)
+                return redirect('/setup', {
+                    headers: { 'Set-Cookie': await commitSession(session) },
+                })
             }
-            if (!setupData.code || !setupData.email) {
-                session.set('setupError', 'Нет сохранённого кода или email')
-                break
-            }
-            if (!verifyCode(inputCode, setupData.code)) {
-                session.set('setupError', 'Неверный код')
-                break
-            }
-            // Переходим к шагу выбора подписки.
+
+            // Сохраняем
+            setupData.subscriptionChoice = subscriptionChoice
             setupData.step = 3
             session.set('setupData', setupData)
-            break
+            return redirect('/setup', {
+                headers: { 'Set-Cookie': await commitSession(session) },
+            })
         }
+
         case 3: {
-            // Шаг 3: Выбор типа подписки
-            const subscriptionChoice = formData.get('subscriptionChoice')?.toString() as 'trial' | 'basic' | 'paid' | undefined
-            if (!subscriptionChoice) {
-                session.set('setupError', 'Выберите тип подписки')
-                break
-            }
-            setupData.subscriptionChoice = subscriptionChoice
-            // Переходим к конфигуратору.
-            setupData.step = 4
-            session.set('setupData', setupData)
-            break
-        }
-        case 4: {
-            // Шаг 4: Конфигуратор — базовая настройка DNS и интернета
-            const dns = formData.get('dns')?.toString().trim() || ''
-            const internet = formData.get('internet')?.toString().trim() || ''
+            // Последний шаг — конфигуратор
+            const dns = (formData.get('dns') || '').toString().trim()
+            const internet = (formData.get('internet') || '').toString().trim()
             if (!dns || !internet) {
-                session.set('setupError', 'Заполните все поля конфигурации')
-                break
+                errors.push('Заполните все поля конфигурации')
+                session.flash('errors', errors)
+                return redirect('/setup', {
+                    headers: { 'Set-Cookie': await commitSession(session) },
+                })
             }
+
+            // Вызываем псевдо-API
             const configResponse = await apiInitialConfigurator({ dns, internet })
             if (!configResponse.success) {
-                session.set('setupError', 'Ошибка конфигурации. Попробуйте ещё раз.')
-                break
+                errors.push('Ошибка конфигурации')
+                session.flash('errors', errors)
+                return redirect('/setup', {
+                    headers: { 'Set-Cookie': await commitSession(session) },
+                })
             }
-            // После конфигуратора выполняем авторизацию.
-            const authResponse = await apiAuthorizeUser(setupData.email!, setupData.code!)
+
+            if (!setupData.email || !setupData.code) {
+                errors.push('Нет email или кода в сессии — странная ошибка')
+                session.flash('errors', errors)
+                return redirect('/setup', {
+                    headers: { 'Set-Cookie': await commitSession(session) },
+                })
+            }
+
+            // Авторизуем
+            const authResponse = await apiAuthorizeUser(setupData.email, setupData.code)
             setupData.authorizedUser = authResponse.user
-            // Завершаем настройку: сохраняем авторизованного пользователя в сессии и сбрасываем setupData.
             session.set('user', authResponse.user)
+
+            // Финал
+            session.flash('success', 'Поздравляем! Установка завершена успешно.')
             session.unset('setupData')
             return redirect('/', {
                 headers: { 'Set-Cookie': await commitSession(session) },
             })
         }
-        default: {
+
+        default:
+            // Неизвестный шаг — сбрасываем на шаг 1
             setupData.step = 1
             session.set('setupData', setupData)
-            break
-        }
+            return redirect('/setup', {
+                headers: { 'Set-Cookie': await commitSession(session) },
+            })
     }
-
-    return redirect('/setup', { headers: { 'Set-Cookie': await commitSession(session) } })
 }
 
+const SetupPage: React.FC = () => {
+    // Достаём данные из loader
+    const { step, plans, errors, success } = useLoaderData<LoaderData>()
+    const navigation = useNavigation()
+    const isSubmitting = navigation.state === 'submitting'
 
-export default function SetupPage() {
-    const loaderData = useLoaderData<LoaderData>()
-    const actionData = useActionData<ActionData>()
+    // Локальный стейт для email и «код отправлен»
+    const [email, setEmail] = useState('')
+    const [codeSent, setCodeSent] = useState(false)
 
+    // При каждом рендере, если есть errors или success, показываем уведомления
     useEffect(() => {
-        if (loaderData?.error)
+        if (success) {
             notifications.show({
-                message: loaderData.error,
-                color: 'red',
+                title: 'Успешно',
+                message: success,
+                c: 'green',
             })
-        if (actionData?.error)
-            notifications.show({
-                message: actionData.error,
-                color: 'red',
+        }
+        if (errors && errors.length > 0) {
+            errors.forEach((err) => {
+                notifications.show({
+                    title: 'Ошибка',
+                    message: err,
+                    c: 'red',
+                })
             })
-    }, [loaderData, actionData])
+        }
+    }, [success, errors])
+
+    // Утилиты для подсветки полей (если нужно)
+    const emailError = errors?.find((msg) => msg.includes('email')) || null
+    const codeError = errors?.find((msg) => msg.includes('код') && !msg.includes('почту')) || null
 
     return (
-        <Container p='xl'>
-            {/* <Title mb="lg">Добро пожаловать! Настройка</Title> */}
+        <Container size="md" py="xl">
+            <Paper withBorder radius="md" p="md" mb="xl">
+                <Title order={2} mb="xs">
+                    Добро пожаловать!
+                </Title>
+                <Text c="dimmed" size="sm">
+                    Пожалуйста, выполните несколько простых шагов, чтобы закончить инициализацию.
+                </Text>
+            </Paper>
 
-            <Stepper
-                active={actionData?.step || 0}
-                mb="xl"
-                completedIcon={<IconCheck size={16} />}
-                allowNextStepsSelect={false}>
-                <Stepper.Step
-                    icon={<IconMailOpened size={18} />}
-                    label="Step 1"
-                    description="Verify email"
+            {/* Если есть ошибки — показываем дополнительный блок (по желанию) */}
+            {errors && errors.length > 0 && (
+                <Paper withBorder radius="md" p="md" mb="xl" style={{ backgroundc: '#fff2f2' }}>
+                    <Text c="red" w={500} mb="sm">
+                        Похоже, возникли ошибки
+                    </Text>
+                    <Text c="red" size="sm" mb="md">
+                        При необходимости вы можете{' '}
+                        <Form method="post" style={{ display: 'inline' }}>
+                            <Button
+                                type="submit"
+                                name="actionType"
+                                value="sendErrorReport"
+                                variant="outline"
+                                c="red"
+                                size="xs"
+                                mx={5}
+                            >
+                                отправить отчёт об ошибке
+                            </Button>
+                        </Form>
+                        {' '}или повторить попытку
+                    </Text>
+                </Paper>
+            )}
+
+            <Paper withBorder radius="md" p="lg">
+                {/* Шаги */}
+                <Stepper
+                    active={step - 1}
+                    completedIcon={<IconCheck size={16} />}
+                    allowNextStepsSelect={false}
+                    mb="xl"
                 >
-                    <Form method="post">
+                    {/* ШАГ 1 */}
+                    <Stepper.Step label="Шаг 1" description="Email и код подтверждения">
                         <Box mb="md">
-                            <Text>Укажите ваш email</Text>
-                            <TextInput name="email" placeholder="user@example.com" required mt="sm" size="md" />
+                            <Text w={500} size="sm" mb="xs">
+                                1) Введите ваш email
+                            </Text>
+                            <Form method="post">
+                                <TextInput
+                                    name="email"
+                                    placeholder="you@example.com"
+                                    error={emailError || undefined}
+                                    value={email}
+                                    onChange={(e) => {
+                                        setEmail(e.target.value)
+                                        setCodeSent(false) // сбрасываем, если пользователь меняет email
+                                    }}
+                                />
+                                <Group p="left" mt="md">
+                                    <Button
+                                        type="submit"
+                                        name="actionType"
+                                        value="sendCode"
+                                        onClick={() => setCodeSent(true)}
+                                        loading={!codeSent && isSubmitting}
+                                    >
+                                        Отправить код
+                                    </Button>
+                                </Group>
+                            </Form>
                         </Box>
-                        <Group p="right">
-                            <Button type="submit">
-                                Отправить код
-                            </Button>
-                        </Group>
-                    </Form>
-                    <Form method="post">
+
+                        <Divider my="md" variant="dashed" />
+
+                        {codeSent && (
+                            <Box mb="md">
+                                <Text w={500} size="sm" mb="xs">
+                                    2) Введите код из письма
+                                </Text>
+                                <Form method="post">
+                                    <TextInput
+                                        name="code"
+                                        placeholder="Например: 1234"
+                                        error={codeError || undefined}
+                                    />
+                                    <Group p="left" mt="md">
+                                        <Button
+                                            type="submit"
+                                            name="actionType"
+                                            value="confirmCode"
+                                            loading={isSubmitting}
+                                        >
+                                            Подтвердить
+                                        </Button>
+                                    </Group>
+                                </Form>
+                            </Box>
+                        )}
+                    </Stepper.Step>
+
+                    {/* ШАГ 2 */}
+                    <Stepper.Step label="Шаг 2" description="Выбор тарифа">
+                        <Text size="sm" mb="md">
+                            Ниже — список доступных планов:
+                        </Text>
+
+                        <Carousel slideSize="33.333%" slideGap="md" withIndicators loop>
+                            {plans.map((plan) => (
+                                <Carousel.Slide key={plan.planId}>
+                                    <Card shadow="sm" radius="md" withBorder p="md">
+                                        <Text w={600} size="lg">
+                                            {plan.name}
+                                        </Text>
+                                        <Text size="sm" c="dimmed" mt="xs">
+                                            Биллинг: {plan.billing_cycle}
+                                        </Text>
+                                        <Text mt="xs" w={500}>
+                                            Цена: {plan.price === 0 ? 'Бесплатно' : `${plan.price} $/мес`}
+                                        </Text>
+                                        <Text size="sm" mt="xs">
+                                            {plan.features}
+                                        </Text>
+                                        <Form method="post">
+                                            <Button
+                                                type="submit"
+                                                variant="light"
+                                                c="blue"
+                                                mt="md"
+                                                fullWidth
+                                                name="subscriptionChoice"
+                                                value={plan.planId.toString()}
+                                            >
+                                                Выбрать
+                                            </Button>
+                                        </Form>
+                                    </Card>
+                                </Carousel.Slide>
+                            ))}
+                        </Carousel>
+                    </Stepper.Step>
+
+                    {/* ШАГ 3 */}
+                    <Stepper.Step label="Шаг 3" description="Конфигурация">
                         <Box mb="md">
-                            <Text>Введите код, полученный на почту</Text>
-                            <TextInput name="code" placeholder="Например: 1234" required mt="sm" size="md" />
+                            <Text w={500} size="sm" mb="xs">
+                                Укажите DNS
+                            </Text>
+                            <Form method="post">
+                                <TextInput name="dns" placeholder="8.8.8.8" mb="sm" />
+                                <Text w={500} size="sm" mb="xs">
+                                    Укажите интернет-провайдера
+                                </Text>
+                                <TextInput name="internet" placeholder="MyISP" mb="md" />
+                                <Group p="right">
+                                    <Button type="submit" name="actionType" value="dummyConfig">
+                                        Применить настройки
+                                    </Button>
+                                </Group>
+                            </Form>
                         </Box>
-                        <Group p="right">
-                            <Button type="submit">
-                                Подтвердить
-                            </Button>
-                        </Group>
-                    </Form>
-                </Stepper.Step>
-                <Stepper.Step
-                    label="Код подтверждения"
-                    description="Проверьте код из email"
-                />
-                <Stepper.Step
-                    label="Подписка"
-                    description="Выберите тип подписки"
-                />
-                <Stepper.Step
-                    label="Конфигурация"
-                    description="Настройте DNS и интернет" />
-            </Stepper>
+                    </Stepper.Step>
+                </Stepper>
+
+                <Box mt="xl">
+                    <Text c="dimmed" size="sm">
+                        По вопросам обращайтесь в{' '}
+                        <Anchor component={NavLink} to="/contacts">
+                            службу поддержки
+                        </Anchor>
+                        .
+                    </Text>
+                </Box>
+            </Paper>
         </Container>
     )
 }
+
+export default SetupPage

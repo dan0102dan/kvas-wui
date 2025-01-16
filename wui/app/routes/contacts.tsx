@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Button, Container, Group, Flex, Stack, Text, Textarea, TextInput, Title, Box, ThemeIcon } from '@mantine/core'
+import { Button, Container, Group, Flex, Stack, Text, Textarea, TextInput, Title, Box, ThemeIcon, Checkbox, Tooltip } from '@mantine/core'
 import { showNotification } from '@mantine/notifications'
 import { IconAt, IconPhone, IconClockHour8 } from '@tabler/icons-react'
 import type { LoaderFunction, ActionFunction } from '@remix-run/node'
@@ -67,7 +67,7 @@ export const action: ActionFunction = async ({ request }) => {
     })
 }
 
-const ContactUs: React.FC = () => {
+const Contacts: React.FC = () => {
     const navigation = useNavigation()
     const { t } = useLang()
     const { success, errors } = useLoaderData<LoaderData>()
@@ -200,6 +200,15 @@ const ContactUs: React.FC = () => {
                                 onChange={handleChange}
                             />
 
+                            <Tooltip
+                                label="Собираем логи об ошибках для быстрого обнаружения и устранения возможных проблем"
+                                refProp="rootRef">
+                                <Checkbox
+                                    label="Я согласен на обработку логов"
+                                    size='xs'
+                                />
+                            </Tooltip>
+
                             <Group justify="flex-end" mt="md">
                                 <Button
                                     color="blue"
@@ -215,8 +224,8 @@ const ContactUs: React.FC = () => {
                     </Form>
                 </Box>
             </Flex>
-        </Container>
+        </Container >
     )
 }
 
-export default ContactUs
+export default Contacts

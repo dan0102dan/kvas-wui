@@ -6,7 +6,7 @@ import { Container, Title, Text, TextInput, Button, Alert } from '@mantine/core'
 import { getSession, commitSession, destroySession } from '../utils'
 import { useAuth } from '../contexts'
 import { getUserByKey } from '../api/licenseApi'
-import type { UserResponse } from '../api/licenseApi'
+import type { User } from '../api/licenseApi'
 
 export const action: ActionFunction = async ({ request }) => {
     const formData = await request.formData()
@@ -26,7 +26,7 @@ export const action: ActionFunction = async ({ request }) => {
         return json({ error: 'Укажите уникальный ключ и email' }, { status: 400 })
     }
 
-    let apiUser: UserResponse | undefined
+    let apiUser: User | undefined
     try {
         apiUser = await getUserByKey(uniqueKey)
     } catch (err) {
@@ -42,7 +42,7 @@ export const action: ActionFunction = async ({ request }) => {
     })
 }
 
-export default function ProfilePage() {
+const ProfilePage: React.FC = () => {
     const { user } = useAuth()
     const actionData = useActionData<{ error?: string }>()
     const navigation = useNavigation()
@@ -96,7 +96,7 @@ export default function ProfilePage() {
             </Text>
             <Text>userType: <b>{user.userType}</b></Text>
             {Object.keys(user).map(key => (
-                <Text key={key}>{key}: <b>{user[key as keyof UserResponse]}</b></Text>
+                <Text key={key}>{key}: <b>{user[key as keyof User]}</b></Text>
             ))}
 
             <Form method="post" style={{ marginTop: 20 }}>
@@ -108,3 +108,5 @@ export default function ProfilePage() {
         </Container>
     )
 }
+
+export default ProfilePage
