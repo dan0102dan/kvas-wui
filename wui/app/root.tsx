@@ -31,6 +31,12 @@ export const loader: LoaderFunction = async ({ request }) => {
   if (user) {
     return json({ user })
   }
+  // remove this
+  return json({
+    user: {
+      email: '',
+    }
+  })
 
   session.unset('user')
   const url = new URL(request.url)

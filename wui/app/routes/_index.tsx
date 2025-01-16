@@ -1,24 +1,42 @@
-import { Container, Flex, Title, Text, Button } from '@mantine/core'
+import {
+  Container,
+  Title,
+  Text,
+  Flex,
+  Button,
+  Center,
+  Box,
+} from '@mantine/core'
 import { IconArrowRight, IconBrandTelegram, IconBrandGithub } from '@tabler/icons-react'
+import { NetworkBackground } from '../components'
 import { useLang } from '../contexts'
 
 export default function Home() {
   const { t } = useLang()
 
   return (
-    <Container size="sm" p="md">
-      <Title order={2}>{t('pages.Home.project')} «Kvas Pro»</Title>
-      <Text mt="xs">{t('pages.Home.description')}</Text>
-      <Text mt="lg">{t('pages.Home.links')}</Text>
+    <Container size="sm" py="xl" px="md">
+      <Center mb="md">
+        <Title
+          ta='center'
+          w={800}
+        >
+          {t('pages.Home.project') + ' '}
+          <Text component="span" color="blue" inherit>
+            «Квас Pro»
+          </Text>
+        </Title>
+      </Center>
 
-      <Flex
-        gap="md"
-        justify="flex-start"
-        align="center"
-        direction="row"
-        wrap="wrap"
-        mt='xs'
-      >
+      <Center mb="xl">
+        <Container size={600} p={0}>
+          <Text size="lg" color="dimmed">
+            {t('pages.Home.description')}
+          </Text>
+        </Container>
+      </Center >
+
+      <Flex justify="center" align="center" wrap="wrap" gap="md">
         <Button
           variant="gradient"
           gradient={{ from: 'indigo', to: 'blue', deg: 247 }}
@@ -27,6 +45,7 @@ export default function Home() {
           component="a"
           href="https://t.me/kvas_pro"
           target="_blank"
+          size='md'
         >
           {t('pages.Home.tgChat')}
         </Button>
@@ -39,10 +58,21 @@ export default function Home() {
           component="a"
           href="https://github.com/qzeleza/kvas"
           target="_blank"
+          size='md'
         >
           {t('pages.Home.githubRepo')}
         </Button>
       </Flex>
+
+      <NetworkBackground
+        numberOfNodes={30}
+        lineDistance={140}
+        baseDotSize={3}
+        sizeGrowthFactor={0.25}
+        animationSpeed={0.8}
+        fpsLimit={30}
+        enableClickToAdd
+      />
     </Container>
   )
 }
