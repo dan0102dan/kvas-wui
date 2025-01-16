@@ -285,11 +285,11 @@ export default function SetupPage() {
     }, [loaderData, actionData])
 
     return (
-        <Container>
+        <Container p='xl'>
             {/* <Title mb="lg">Добро пожаловать! Настройка</Title> */}
 
             <Stepper
-                active={actionData?.step || 3}
+                active={actionData?.step || 0}
                 mb="xl"
                 completedIcon={<IconCheck size={16} />}
                 allowNextStepsSelect={false}>

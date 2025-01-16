@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import { Button, Container, Group, SimpleGrid, Stack, Text, Textarea, TextInput, Title, Box, ThemeIcon } from '@mantine/core'
+import { Button, Container, Group, Flex, Stack, Text, Textarea, TextInput, Title, Box, ThemeIcon } from '@mantine/core'
 import { showNotification } from '@mantine/notifications'
-import { IconAt, IconPhone, IconSun } from '@tabler/icons-react'
+import { IconAt, IconPhone, IconClockHour8 } from '@tabler/icons-react'
 import type { LoaderFunction, ActionFunction } from '@remix-run/node'
 import { Form, useLoaderData, useNavigation } from '@remix-run/react'
 import { redirect, json } from '@remix-run/node'
@@ -38,7 +38,6 @@ export const action: ActionFunction = async ({ request }) => {
     const errors: string[] = []
 
     if (!email) errors.push('forms.errors.emailRequired')
-    if (!name) errors.push('forms.errors.nameRequired')
     if (!message) errors.push('forms.errors.messageRequired')
 
     if (errors.length > 0) {
@@ -106,7 +105,7 @@ const ContactUs: React.FC = () => {
             errors.forEach((errorKey) => {
                 showNotification({
                     title: t('notifications.errorTitle'),
-                    message: t(errorKey) || errorKey,
+                    message: t(errorKey),
                     color: 'red',
                 })
             })
@@ -114,16 +113,22 @@ const ContactUs: React.FC = () => {
     }, [success, errors])
 
     return (
-        <Container py="xl" px="xl">
-            <SimpleGrid cols={2} spacing="xl">
-                <Box>
-                    <Title order={2} mb="md">
-                        {t('pages.Contacts.title')}
-                    </Title>
-                    <Text mb="xl" c="dimmed">
-                        {t('pages.Contacts.description')}
-                    </Text>
+        <Container size='sm' p='xl'>
+            <Title order={2} mb="md">
+                {t('pages.Contacts.title')}
+            </Title>
 
+            <Text mb="xl" c="dimmed">
+                {t('pages.Contacts.description')}
+            </Text>
+            <Flex
+                gap='sm'
+                justify='space-evenly'
+                align="flex-end"
+                direction="row"
+                wrap='wrap-reverse'
+            >
+                <Box p="sm">
                     <Stack>
                         {[
                             {
@@ -137,7 +142,7 @@ const ContactUs: React.FC = () => {
                                 description: '+7 (800) 335 35 35',
                             },
                             {
-                                icon: <IconSun size={18} />,
+                                icon: <IconClockHour8 size={18} />,
                                 title: t('pages.Contacts.workingHours'),
                                 description: '8:00 – 20:00',
                             },
@@ -178,9 +183,7 @@ const ContactUs: React.FC = () => {
                             <TextInput
                                 label={t('forms.nameLabel')}
                                 placeholder={t('forms.namePlaceholder')}
-                                required
                                 variant="filled"
-                                withAsterisk
                                 name="name"
                                 value={formData.name}
                                 onChange={handleChange}
@@ -211,7 +214,7 @@ const ContactUs: React.FC = () => {
                         </Stack>
                     </Form>
                 </Box>
-            </SimpleGrid>
+            </Flex>
         </Container>
     )
 }

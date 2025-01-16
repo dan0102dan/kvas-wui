@@ -26,7 +26,11 @@
         "namePlaceholder": "Иван Иванов",
         "messageLabel": "Ваше сообщение",
         "messagePlaceholder": "Я хочу узнать больше о вашем продукте...",
-        "sendButton": "Отправить сообщение"
+        "sendButton": "Отправить сообщение",
+        "errors": {
+            "emailRequired": "Пожалуйста, введите электронную почту",
+            "messageRequired": "Пожалуйста, введите сообщение"
+        }
     },
     "pages": {
         "NotFound": {

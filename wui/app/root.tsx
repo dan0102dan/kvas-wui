@@ -3,14 +3,7 @@ import '@mantine/notifications/styles.css'
 
 import type { LoaderFunction } from '@remix-run/node'
 import { json, redirect } from '@remix-run/node'
-import {
-  Links,
-  Meta,
-  Outlet,
-  Scripts,
-  ScrollRestoration,
-  useLoaderData
-} from '@remix-run/react'
+import { Links, Meta, Outlet, Scripts, ScrollRestoration, useLoaderData } from '@remix-run/react'
 
 import { MantineProvider, AppShell, ColorSchemeScript } from '@mantine/core'
 import { Notifications } from '@mantine/notifications'
