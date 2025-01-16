@@ -61,7 +61,7 @@ export default function App() {
         <ColorSchemeScript defaultColorScheme="auto" />
       </head>
       <body>
-        <MantineProvider defaultColorScheme="auto">
+        <MantineProvider defaultColorScheme="auto" theme={{ defaultRadius: 'md' }}>
           <Notifications />
           <LangProvider>
             <AuthProvider user={user}>
@@ -73,7 +73,6 @@ export default function App() {
                   breakpoint: 'sm',
                   collapsed: { mobile: !opened },
                 }}
-                padding="md"
               >
                 <AppShell.Header>
                   <Header opened={opened} toggle={toggle} />

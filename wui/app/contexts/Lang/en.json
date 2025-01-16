@@ -13,6 +13,21 @@
             "auto": "Auto"
         }
     },
+    "notifications": {
+        "successTitle": "Success",
+        "successMessage": "Your message has been successfully sent!",
+        "errorTitle": "Error",
+        "errorMessage": "An error occurred while sending the message."
+    },
+    "forms": {
+        "emailLabel": "Email",
+        "emailPlaceholder": "your@email.com",
+        "nameLabel": "Name",
+        "namePlaceholder": "John Doe",
+        "messageLabel": "Your Message",
+        "messagePlaceholder": "I would like to know more about your product...",
+        "sendButton": "Send Message"
+    },
     "pages": {
         "NotFound": {
             "title": "Nothing Found",
@@ -26,6 +41,14 @@
             "links": "Useful links:",
             "tgChat": "Telegram Chat",
             "githubRepo": "GitHub Repository"
+        },
+        "Contacts": {
+            "_": "Contacts",
+            "title": "Contact us",
+            "description": "Leave your email and we will get back to you within 24 hours",
+            "contactEmail": "Email",
+            "contactPhone": "Phone",
+            "workingHours": "Working hours"
         },
         "Setup": {
             "_": "Services Configuration",

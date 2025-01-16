@@ -70,7 +70,7 @@ export default function Home() {
         baseDotSize={3}
         sizeGrowthFactor={0.25}
         animationSpeed={0.8}
-        fpsLimit={30}
+        fpsLimit={60}
         enableClickToAdd
       />
     </Container>

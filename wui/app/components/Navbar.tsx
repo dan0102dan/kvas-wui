@@ -1,9 +1,6 @@
 import React from 'react'
 import { NavLink as RemixNavLink, useLocation } from '@remix-run/react'
-import {
-    IconSun,
-    IconSwitchHorizontal,
-} from '@tabler/icons-react'
+import { IconSun, IconSwitchHorizontal } from '@tabler/icons-react'
 import { NavLink, ScrollArea, Popover, Select, useMantineColorScheme, MantineColorScheme, Divider } from '@mantine/core'
 import { useLang, availableTranslations, Lang } from '../contexts'
 import { routes } from '../routes/routes'
