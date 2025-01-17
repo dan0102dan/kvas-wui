@@ -38,9 +38,11 @@
             "_": "Home",
             "project": "Project",
             "description": "Kvas is a convenient and intuitive utility for managing home internet. With it, you can easily configure a VPN connection, optimize DNS settings, and much more, ensuring network stability and security. All this is in one simple interface!",
-            "links": "Useful links:",
+            "slogan": "Making routers smarter",
             "tgChat": "Telegram Chat",
-            "githubRepo": "GitHub Repository"
+            "githubRepo": "GitHub Repository",
+            "whyUs": "Why Us?",
+            "whyUsDescription": "Sometimes there are situations when familiar solutions no longer cope. We offer an innovative approach that changes the idea of routing and data security."
         },
         "Contacts": {
             "_": "Contacts",

@@ -95,39 +95,38 @@ const Home: React.FC = () => {
 
         <Group justify="center" py="md">
           <Badge variant="filled" size="lg">
-            Задаём стандарты
+            {t('pages.Home.slogan')}
           </Badge>
         </Group>
       </Flex>
 
-      <Container size="lg" pb='xl'>
+      <Container size="lg" pb="xl">
         <Title order={2} ta="center" mt="sm">
-          That's why you should use our services
+          {t('pages.Home.whyUs')}
         </Title>
 
         <Text c="dimmed" ta="center" mt="md">
-          Every once in a while, you’ll see a Golbat that’s missing some fangs. This happens when
-          hunger drives it to try biting a Steel-type Pokémon.
+          {t('pages.Home.whyUsDescription')}
         </Text>
 
         <SimpleGrid cols={{ base: 1, md: 3 }} spacing="xl" mt={50}>
           {[
             {
-              title: 'Extreme performance',
+              title: 'Экстремальная производительность',
               description:
-                'This dust is actually a powerful poison that will even make a pro wrestler sick, Regice cloaks itself with frigid air of -328 degrees Fahrenheit',
+                'Наш продукт обеспечивает невероятную скорость работы, позволяя обрабатывать большие нагрузки без потерь в качестве. Благодаря оптимизированному коду и современным технологиям, ваша сеть всегда на высоте.',
               icon: IconGauge,
             },
             {
-              title: 'Privacy focused',
+              title: 'Защита и приватность',
               description:
-                'People say it can run at the same speed as lightning striking, Its icy body is so cold, it will not melt even if it is immersed in magma',
+                'Уделяем максимальное внимание безопасности данных. Наша система использует последние шифровальные алгоритмы, что гарантирует защиту от посторонних вмешательств и утечек информации.',
               icon: IconUser,
             },
             {
-              title: 'No third parties',
+              title: 'Без сторонних сервисов',
               description:
-                'They’re popular, but they’re rare. Trainers who show them off recklessly may be targeted by thieves',
+                'Все вычисления и процессы выполняются локально, без привлечения сторонних сервисов. Это позволяет избежать дополнительных рисков и обеспечить полное соответствие требованиям конфиденциальности.',
               icon: IconCookie,
             },
           ].map((feature) => (
@@ -142,7 +141,7 @@ const Home: React.FC = () => {
             </Card>
           ))}
         </SimpleGrid>
-      </Container>
+      </Container >
     </>
   )
 }
