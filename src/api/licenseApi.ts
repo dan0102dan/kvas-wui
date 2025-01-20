@@ -1,29 +1,6 @@
 import axios from 'axios'
+import type { User, Plan } from './types'
 import { snakeToCamel, camelToSnake } from '../utils'
-
-export interface User {
-    userId: number
-    serviceCode: string
-    email: string | null
-    uniqueKey: string
-    architecture: string
-    model?: string
-    kvasVersion?: string
-    purchaseCount: number
-    subscriptionType?: string[]
-    activationDate: string
-    expirationDate: string
-    subscriptionIds?: number[]
-    userType?: 'freeTrial' | 'paid' | 'lifetime' | 'freeBase'
-}
-
-export interface Plan {
-    planId: number
-    name: string
-    price: number
-    billing_cycle: string
-    features: string
-}
 
 const licenseApi = axios.create({
     baseURL: 'https://license.dnstkrv.ru/api/v1',

@@ -12,72 +12,61 @@ import {
     Box,
     ThemeIcon,
     Checkbox,
-    Tooltip
+    Tooltip,
 } from '@mantine/core'
+import { useForm } from '@mantine/form'
 import { showNotification } from '@mantine/notifications'
 import { IconAt, IconPhone, IconClockHour8 } from '@tabler/icons-react'
 import { useLang } from '../contexts'
-
-// Эмуляция отправки
-async function fakeSendData(email: string, message: string) {
-    return new Promise<{ success: boolean }>((resolve) => {
-        setTimeout(() => {
-            const isSuccess = Math.random() > 0.2
-            resolve({ success: isSuccess })
-        }, 2000)
-    })
-}
+import { sendEmail } from '../api/test'
 
 const Contacts: React.FC = () => {
     const { t } = useLang()
-    const [email, setEmail] = useState('')
-    const [name, setName] = useState('')
-    const [message, setMessage] = useState('')
     const [isSending, setIsSending] = useState(false)
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
+    // Инициализируем Mantine form
+    const form = useForm({
+        initialValues: {
+            email: '',
+            name: '',
+            message: '',
+            logsConsent: false,
+        },
+        validate: {
+            email: (value) => (value ? null : t('forms.errors.emailRequired')),
+            message: (value) => (value ? null : t('forms.errors.messageRequired')),
+            // name — необязательное валидация
+            // logsConsent — тоже необязательное поле
+        },
+    })
 
-        const errors: string[] = []
-        if (!email) errors.push('forms.errors.emailRequired')
-        if (!message) errors.push('forms.errors.messageRequired')
-
-        if (errors.length > 0) {
-            errors.forEach((errKey) => {
+    // Вызывается по submit формы
+    const handleSubmit = async (values: typeof form.values) => {
+        setIsSending(true)
+        try {
+            const result = await sendEmail(values.email, values.message)
+            if (result.success) {
+                showNotification({
+                    title: t('notifications.successTitle'),
+                    message: t('notifications.successMessage'),
+                    color: 'green',
+                })
+                // Сброс формы
+                form.reset()
+            } else {
                 showNotification({
                     title: t('notifications.errorTitle'),
-                    message: t(errKey),
+                    message: t('notifications.errorMessage'),
                     color: 'red',
                 })
-            })
-            return
-        }
-
-        setIsSending(true)
-        const result = await fakeSendData(email, message)
-        setIsSending(false)
-
-        if (result.success) {
-            showNotification({
-                title: t('notifications.successTitle'),
-                message: t('notifications.successMessage'),
-                color: 'green',
-            })
-            // Сброс формы
-            setEmail('')
-            setName('')
-            setMessage('')
-        } else {
-            showNotification({
-                title: t('notifications.errorTitle'),
-                message: t('notifications.errorSendFailed'),
-                color: 'red',
-            })
+            }
+        } finally {
+            setIsSending(false)
         }
     }
 
     return (
-        <Container size='sm' p='xl'>
+        <Container size="sm" p="xl">
             <Title order={2} mb="md">
                 {t('pages.Contacts.title')}
             </Title>
@@ -85,13 +74,15 @@ const Contacts: React.FC = () => {
             <Text mb="xl" c="dimmed">
                 {t('pages.Contacts.description')}
             </Text>
+
             <Flex
-                gap='sm'
-                justify='space-evenly'
+                gap="sm"
+                justify="space-evenly"
                 align="flex-end"
                 direction="row"
-                wrap='wrap-reverse'
+                wrap="wrap-reverse"
             >
+                {/* Левая колонка (контактная информация) */}
                 <Box p="sm">
                     <Stack>
                         {[
@@ -124,12 +115,13 @@ const Contacts: React.FC = () => {
                     </Stack>
                 </Box>
 
+                {/* Правая колонка (форма) */}
                 <Box
-                    bg='rgba(128, 128, 128, 0.05)'
+                    bg="rgba(128, 128, 128, 0.05)"
                     p="xl"
                     style={(theme) => ({ borderRadius: theme.radius.md })}
                 >
-                    <form onSubmit={handleSubmit}>
+                    <form onSubmit={form.onSubmit(handleSubmit)}>
                         <Stack>
                             <TextInput
                                 label={t('forms.emailLabel')}
@@ -137,19 +129,17 @@ const Contacts: React.FC = () => {
                                 required
                                 variant="filled"
                                 withAsterisk
-                                name="email"
                                 type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
+                                {...form.getInputProps('email')}
                             />
+
                             <TextInput
                                 label={t('forms.nameLabel')}
                                 placeholder={t('forms.namePlaceholder')}
                                 variant="filled"
-                                name="name"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
+                                {...form.getInputProps('name')}
                             />
+
                             <Textarea
                                 label={t('forms.messageLabel')}
                                 placeholder={t('forms.messagePlaceholder')}
@@ -157,28 +147,24 @@ const Contacts: React.FC = () => {
                                 required
                                 variant="filled"
                                 withAsterisk
-                                name="message"
-                                value={message}
-                                onChange={(e) => setMessage(e.target.value)}
+                                {...form.getInputProps('message')}
                             />
 
                             <Tooltip
-                                label="Собираем логи об ошибках для быстрого обнаружения и устранения возможных проблем"
-                                refProp="rootRef">
+                                label="Собираем логи об ошибках для быстрого обнаружения и устранения проблем"
+                                withArrow
+                                p="top-start"
+                                arrowOffset={8}
+                            >
                                 <Checkbox
                                     label="Я согласен на обработку логов"
-                                    size='xs'
+                                    size="xs"
+                                    {...form.getInputProps('logsConsent', { type: 'checkbox' })}
                                 />
                             </Tooltip>
 
                             <Group justify="flex-end" mt="md">
-                                <Button
-                                    color="blue"
-                                    size="s"
-                                    variant="filled"
-                                    type="submit"
-                                    loading={isSending}
-                                >
+                                <Button color="blue" variant="filled" type="submit" loading={isSending}>
                                     {t('forms.sendButton')}
                                 </Button>
                             </Group>

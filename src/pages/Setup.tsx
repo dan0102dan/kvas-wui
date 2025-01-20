@@ -11,30 +11,24 @@ import {
     Title,
     Divider,
     Anchor,
-    Card
+    Card,
+    Stack
 } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import { Carousel } from '@mantine/carousel'
 import { IconCheck } from '@tabler/icons-react'
 import { NavLink, useNavigate } from 'react-router-dom'
 
-import { getPlans, Plan, User } from '../api/licenseApi'
+import type { Plan } from '../api/types'
+import { createUser, getPlans, sendConfirmationCode } from '../api/test'
 import { useAuth } from '../contexts'
 
-function fakeSendCode(email: string) {
-    return new Promise<{ code: string }>((resolve) => {
-        setTimeout(() => {
-            // Сгенерируем 4-значный
-            const code = String(Math.floor(1000 + Math.random() * 9000))
-            resolve({ code })
-        }, 500)
-    })
-}
-
+/** Сравнение введённого кода с "реальным" */
 function fakeCheckCode(inputCode: string, realCode: string) {
     return inputCode === realCode
 }
 
+/** Псевдо-настройка (DNS, провайдер) */
 function fakeInitConfig(dns: string, internet: string) {
     return new Promise<{ success: boolean }>((resolve) => {
         setTimeout(() => {
@@ -43,30 +37,12 @@ function fakeInitConfig(dns: string, internet: string) {
     })
 }
 
-function fakeAuthorizeUser(email: string, code: string): Promise<{ user: User }> {
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            // Эмуляция
-            const user: User = {
-                userId: Math.floor(Math.random() * 99999),
-                uniqueKey: 'FAKE-UNIQUE-KEY-SETUP',
-                serviceCode: 'test-service',
-                email,
-                architecture: 'x86',
-                purchaseCount: 0,
-                activationDate: '2023-01-01',
-                expirationDate: '2099-12-31',
-            }
-            resolve({ user })
-        }, 500)
-    })
-}
-
 const SetupPage: React.FC = () => {
     const navigate = useNavigate()
     const { user } = useAuth()
-    const [plans, setPlans] = useState<Plan[]>([])
-    const [step, setStep] = useState<number>(1)
+
+    // Три шага мастера. Начинаем с шага 0 (чтобы Stepper был в состоянии "Шаг 1")
+    const [step, setStep] = useState<number>(0)
 
     // Шаг 1
     const [email, setEmail] = useState('')
@@ -74,20 +50,21 @@ const SetupPage: React.FC = () => {
     const [realCode, setRealCode] = useState<string | null>(null)
 
     // Шаг 2
+    const [plans, setPlans] = useState<Plan[]>([])
     const [subscriptionChoice, setSubscriptionChoice] = useState<string | null>(null)
 
     // Шаг 3
     const [dns, setDns] = useState('')
     const [internet, setInternet] = useState('')
 
-    // Если user уже авторизован, смысла в setup нет
-    useEffect(() => {
-        if (user) {
-            navigate('/')
-        }
-    }, [user])
+    // Если пользователь уже авторизован, нет смысла проходить setup
+    // useEffect(() => {
+    //     if (user) {
+    //         navigate('/')
+    //     }
+    // }, [user, navigate])
 
-    // Загружаем тарифы (аналог loader)
+    // Загружаем тарифные планы при монтировании
     useEffect(() => {
         getPlans()
             .then((res) => {
@@ -103,7 +80,13 @@ const SetupPage: React.FC = () => {
             })
     }, [])
 
-    // Шаг 1 - отправить код
+    // Если пользователь меняет email, сбрасываем код и "реальный код"
+    useEffect(() => {
+        setRealCode(null)
+        setCode('')
+    }, [email])
+
+    /** Шаг 1 — отправка кода */
     const handleSendCode = async () => {
         if (!email) {
             notifications.show({
@@ -114,9 +97,10 @@ const SetupPage: React.FC = () => {
             return
         }
 
-        // Генерируем код
-        const resp = await fakeSendCode(email)
-        setRealCode(resp.code)
+        const { code } = await sendConfirmationCode(email)
+        console.log(code)
+        setRealCode(code) // Устанавливаем "реальный" код (теперь можно вводить и подтверждать)
+
         notifications.show({
             title: 'Успешно',
             message: `Код отправлен на ${email}`,
@@ -124,12 +108,12 @@ const SetupPage: React.FC = () => {
         })
     }
 
-    // Шаг 1 - подтвердить код
+    /** Шаг 1 — подтверждение кода */
     const handleConfirmCode = async () => {
         if (!realCode) {
             notifications.show({
                 title: 'Ошибка',
-                message: 'Сначала нажмите "Отправить код"',
+                message: 'Сначала нажмите «Отправить код»',
                 color: 'red',
             })
             return
@@ -150,27 +134,28 @@ const SetupPage: React.FC = () => {
             })
             return
         }
-        // всё ок
+        // Код верный — переходим на 2-й шаг
+        setStep(1)
+    }
+
+    /** Шаг 2 — выбор тарифа */
+    const handleSelectPlan = (planId: number) => {
+        setSubscriptionChoice(planId.toString())
         setStep(2)
     }
 
-    // Шаг 2 - выбрать тариф
-    const handleSelectPlan = (planId: number) => {
-        setSubscriptionChoice(planId.toString())
-        setStep(3)
-    }
-
-    // Шаг 3 - конфиг
+    /** Шаг 3 — конфигурация и создание пользователя */
     const handleApplyConfig = async () => {
         if (!dns || !internet) {
             notifications.show({
                 title: 'Ошибка',
-                message: 'Заполните все поля конфигурации',
+                message: 'Заполните поля DNS и интернет-провайдера',
                 color: 'red',
             })
             return
         }
 
+        // Псевдо-настройка
         const confRes = await fakeInitConfig(dns, internet)
         if (!confRes.success) {
             notifications.show({
@@ -181,7 +166,7 @@ const SetupPage: React.FC = () => {
             return
         }
 
-        // Авторизация
+        // Создаём пользователя через заглушку createUser(...)
         if (!realCode) {
             notifications.show({
                 title: 'Ошибка',
@@ -190,9 +175,13 @@ const SetupPage: React.FC = () => {
             })
             return
         }
-        const authResp = await fakeAuthorizeUser(email, realCode)
-        // Сохраняем user где-то (localStorage?), перезагружаем/редирект
-        localStorage.setItem('userData', JSON.stringify(authResp.user))
+
+        const authResp = await createUser(email)
+        const newUser = authResp.user
+
+        // Сохраняем user в localStorage (или используем login() из AuthContext)
+        localStorage.setItem('userData', JSON.stringify(newUser))
+
         notifications.show({
             title: 'Успешно',
             message: 'Поздравляем! Установка завершена.',
@@ -213,12 +202,19 @@ const SetupPage: React.FC = () => {
             </Paper>
 
             <Paper withBorder radius="md" p="lg">
+                {/**
+         * Мапим step: 0 -> (Этап "Email и код"),
+         *             1 -> (Выбор тарифа),
+         *             2 -> (Конфигурация).
+         * Mantine Stepper "active" — это текущее число шага.
+         */}
                 <Stepper
-                    active={step - 1}
+                    active={step}
                     completedIcon={<IconCheck size={16} />}
                     allowNextStepsSelect={false}
                     mb="xl"
                 >
+                    {/* ШАГ 1 */}
                     <Stepper.Step label="Шаг 1" description="Email и код">
                         <Box mb="md">
                             <Text size="sm" mb="xs">
@@ -230,57 +226,70 @@ const SetupPage: React.FC = () => {
                                 onChange={(e) => setEmail(e.target.value)}
                             />
                             <Group mt="md">
-                                <Button onClick={handleSendCode}>
-                                    Отправить код
-                                </Button>
+                                <Button onClick={handleSendCode}>Отправить код</Button>
                             </Group>
                         </Box>
 
                         <Divider my="md" variant="dashed" />
 
-                        <Box mb="md">
-                            <Text size="sm" mb="xs">
-                                2) Введите код из письма
-                            </Text>
-                            <TextInput
-                                placeholder="1234"
-                                value={code}
-                                onChange={(e) => setCode(e.target.value)}
-                            />
-                            <Group mt="md">
-                                <Button onClick={handleConfirmCode}>
-                                    Подтвердить
-                                </Button>
-                            </Group>
-                        </Box>
+                        {/* Показываем поле "Введите код" и кнопку "Подтвердить", только если realCode != null */}
+                        {realCode !== null && (
+                            <Box mb="md">
+                                <Text size="sm" mb="xs">
+                                    2) Введите код из письма
+                                </Text>
+                                <TextInput
+                                    placeholder="1234"
+                                    value={code}
+                                    onChange={(e) => setCode(e.target.value)}
+                                />
+                                <Group mt="md">
+                                    <Button onClick={handleConfirmCode}>Подтвердить</Button>
+                                </Group>
+                            </Box>
+                        )}
                     </Stepper.Step>
 
+                    {/* ШАГ 2 */}
                     <Stepper.Step label="Шаг 2" description="Выбор тарифа">
                         <Text size="sm" mb="md">
-                            Ниже — список доступных планов:
+                            Список доступных планов:
                         </Text>
 
-                        <Carousel slideSize="33.333%" slideGap="md" withIndicators loop>
+                        <Carousel
+                            slideSize="25%"         // 4 карточки на 100%
+                            slideGap="md"
+                            align="start"           // выравнивание слайда сверху
+                        >
                             {plans.map((plan) => (
                                 <Carousel.Slide key={plan.planId}>
-                                    <Card shadow="sm" radius="md" withBorder p="md">
-                                        <Text fw={600} size="lg">
-                                            {plan.name}
-                                        </Text>
-                                        <Text size="sm" c="dimmed" mt="xs">
-                                            Биллинг: {plan.billing_cycle}
-                                        </Text>
-                                        <Text mt="xs">
-                                            Цена: {plan.price === 0 ? 'Бесплатно' : `${plan.price} $/мес`}
-                                        </Text>
-                                        <Text size="sm" mt="xs">
-                                            {plan.features}
-                                        </Text>
+                                    <Card
+                                        shadow="sm"
+                                        radius="md"
+                                        withBorder
+                                        p="md"
+                                        h='100%'
+                                    >
+                                        <Stack flex={1}>
+                                            <Title order={4}>{plan.name}</Title>
+                                            <Text size="sm" c="dimmed">
+                                                Биллинг: {plan.billing_cycle}
+                                            </Text>
+                                            <Text size="sm">
+                                                Цена:{' '}
+                                                {plan.price === 0
+                                                    ? 'Бесплатно'
+                                                    : `${plan.price} $/мес`}
+                                            </Text>
+                                            <Text size="sm" c="dimmed">
+                                                {plan.features}
+                                            </Text>
+                                        </Stack>
+
                                         <Button
-                                            variant="light"
+                                            variant="filled"
                                             color="blue"
                                             mt="md"
-                                            fullWidth
                                             onClick={() => handleSelectPlan(plan.planId)}
                                         >
                                             Выбрать
@@ -291,6 +300,7 @@ const SetupPage: React.FC = () => {
                         </Carousel>
                     </Stepper.Step>
 
+                    {/* ШАГ 3 */}
                     <Stepper.Step label="Шаг 3" description="Конфигурация">
                         <Box mb="md">
                             <Text size="sm" mb="xs">
@@ -311,10 +321,8 @@ const SetupPage: React.FC = () => {
                                 value={internet}
                                 onChange={(e) => setInternet(e.target.value)}
                             />
-                            <Group position="right">
-                                <Button onClick={handleApplyConfig}>
-                                    Применить настройки
-                                </Button>
+                            <Group p="right">
+                                <Button onClick={handleApplyConfig}>Применить настройки</Button>
                             </Group>
                         </Box>
                     </Stepper.Step>

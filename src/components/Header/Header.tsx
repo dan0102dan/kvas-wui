@@ -1,16 +1,17 @@
 import React from 'react'
-import { Group, Burger, Code, Avatar, Tooltip } from '@mantine/core'
+import { Group, Burger, Avatar, ActionIcon } from '@mantine/core'
 import { Link } from 'react-router-dom'
-import { IconUserCircle } from '@tabler/icons-react'
-import packageJson from '../../../package.json'
+import { IconUserCircle, IconSettings } from '@tabler/icons-react'
 import { useAuth } from '../../contexts'
 
 interface HeaderProps {
-    opened: boolean
-    toggle: () => void
+    navbarOpened: boolean
+    asideOpened: boolean
+    toggleNavbar: () => void
+    toggleAside: () => void
 }
 
-const Header: React.FC<HeaderProps> = ({ opened, toggle }) => {
+const Header: React.FC<HeaderProps> = ({ navbarOpened, asideOpened, toggleNavbar, toggleAside }) => {
     const { user } = useAuth()
 
     const initials = user?.userId
@@ -21,28 +22,31 @@ const Header: React.FC<HeaderProps> = ({ opened, toggle }) => {
         <Group h="100%" px="md" align="center" justify="space-between">
             <Group>
                 <Burger
-                    opened={opened}
-                    onClick={toggle}
+                    opened={navbarOpened}
+                    onClick={() => {
+                        toggleNavbar()
+                        asideOpened && toggleAside()
+                    }}
                     hiddenFrom="sm"
                     size="sm"
                 />
-                <Tooltip
-                    label={'Личный кабинет'}
-                    position="bottom"
-                    withArrow
+
+                <Avatar
+                    component={Link}
+                    to="/profile"
+                    color="initials"
+                    radius="xl"
                 >
-                    <Avatar
-                        component={Link}
-                        to="/profile"
-                        color="initials"
-                        radius="xl"
-                    >
-                        {user ? initials : <IconUserCircle size={20} />}
-                    </Avatar>
-                </Tooltip>
+                    {user ? initials : <IconUserCircle size={20} />}
+                </Avatar>
             </Group>
 
-            <Code fw={700}>v{packageJson.version}</Code>
+            <ActionIcon
+                variant="default"
+                onClick={toggleAside}
+            >
+                <IconSettings size={20} />
+            </ActionIcon>
         </Group>
     )
 }

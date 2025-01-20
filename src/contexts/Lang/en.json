@@ -2,7 +2,6 @@
     "settings": {
         "language": {
             "change": "Change language",
-            "placeholder": "Select language",
             "ru": "Русский 🇷🇺",
             "en": "English 🇺🇸"
         },
