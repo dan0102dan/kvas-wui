@@ -1,42 +1,46 @@
 {
-  "name": "kvas-wui",
+  "name": "kvas-pro",
   "author": "dan0102dan",
-  "version": "0.0.2",
-  "private": true,
-  "sideEffects": false,
-  "type": "module",
-  "scripts": {
-    "build": "remix vite:build",
-    "dev": "remix vite:dev",
-    "start": "remix-serve ./build/server/index.js",
-    "typecheck": "tsc"
-  },
+  "version": "1.0.3",
+  "homepage": "./",
   "dependencies": {
-    "@mantine/core": "^7.16.0",
-    "@mantine/hooks": "^7.16.0",
-    "@mantine/carousel": "^7.16.0",
-    "@mantine/notifications": "^7.15.3",
-    "@remix-run/node": "^2.15.2",
-    "@remix-run/react": "^2.15.2",
-    "@remix-run/serve": "^2.15.2",
-    "@tabler/icons-react": "3.17.0",
+    "@mantine/core": "^7.15.2",
+    "@mantine/hooks": "^7.15.2",
+    "@tabler/icons-react": "^3.26.0",
     "axios": "^1.7.9",
-    "isbot": "^4.1.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^7.1.1",
+    "react-scripts": "5.0.1"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "GENERATE_SOURCEMAP=false react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   },
   "devDependencies": {
-    "@remix-run/dev": "^2.15.2",
-    "@types/react": "^18.2.20",
-    "@types/react-dom": "^18.2.7",
-    "postcss": "^8.4.49",
-    "postcss-preset-mantine": "^1.17.0",
-    "postcss-simple-vars": "^7.0.1",
-    "typescript": "^5.1.6",
-    "vite": "^5.1.0",
-    "vite-tsconfig-paths": "^4.2.1"
-  },
-  "engines": {
-    "node": ">=20.0.0"
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "@types/node": "^22.10.2",
+    "@types/react": "^19.0.2",
+    "@types/react-dom": "^19.0.2"
   }
 }
