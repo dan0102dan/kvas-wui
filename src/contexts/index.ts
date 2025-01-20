@@ -7,3 +7,8 @@ export {
     type AuthContextProps,
     useAuth, AuthProvider
 } from './Auth'
+
+export {
+    SecurityProvider,
+    useSecurity
+} from './SecurityGate/SecurityGate'

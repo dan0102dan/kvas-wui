@@ -7,7 +7,9 @@ import ReactDOM from 'react-dom/client'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import App from './App'
 import { routes } from './routes'
-import { LangProvider, AuthProvider } from './contexts'
+import { LangProvider, AuthProvider, SecurityProvider } from './contexts'
+import { MantineProvider } from '@mantine/core'
+import { Notifications } from '@mantine/notifications'
 
 const router = createBrowserRouter([
   {
@@ -31,10 +33,15 @@ const router = createBrowserRouter([
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
-    <LangProvider>
-      <AuthProvider>
-        <RouterProvider router={router} />
-      </AuthProvider>
-    </LangProvider>
+    <MantineProvider defaultColorScheme="auto" theme={{ defaultRadius: 'md' }}>
+      <Notifications />
+      <LangProvider>
+        <SecurityProvider>
+          <AuthProvider>
+            <RouterProvider router={router} />
+          </AuthProvider>
+        </SecurityProvider>
+      </LangProvider>
+    </MantineProvider>
   </React.StrictMode>,
 )

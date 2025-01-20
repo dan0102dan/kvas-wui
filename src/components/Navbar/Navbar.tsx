@@ -14,7 +14,7 @@ const Navbar: React.FC<NavbarProps> = ({ toggle }) => {
 
     return (
         <>
-            <ScrollArea style={{ flexGrow: 1 }}>
+            <ScrollArea flex={1}>
                 {routes
                     .filter((route) => !route.hidden)
                     .map((route) => (
