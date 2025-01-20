@@ -4,14 +4,11 @@ on:
   push:
     branches:
       - main
-      - wui
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./wui
+    
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -19,7 +16,7 @@ jobs:
       - name: Modify BrowserRouter to HashRouter and change homepage
         run: |
           sed -i 's/BrowserRouter/HashRouter/' src/index.tsx
-          sed -i 's|"homepage": ".*"|"homepage": "https://dan0102dan.github.io/kvas-pro"|' package.json
+          sed -i 's|"homepage": ".*"|"homepage": "https://dan0102dan.github.io/kvas-wui"|' package.json
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
