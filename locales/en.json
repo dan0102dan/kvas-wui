@@ -1,0 +1,17 @@
+{
+    " [ОТЛАДКА] ": " [DEBUG] ",
+    " [ИНФО] ": " [INFO] ",
+    " [ПРЕДУПРЕЖДЕНИЕ] ": " [WARNING] ",
+    " [ОШИБКА] ": " [ERROR] ",
+    " [КРИТИЧЕСКАЯ ОШИБКА] ": " [CRITICAL] ",
+    "Здравствуй, Мир!": "Hello, World!",
+    "Не удалось открыть файл локализации: ": "Could not open locale file: ",
+    "Недопустимый JSON-формат в файле: ": "Invalid JSON in file: ",
+    "Не удалось установить язык на ": "Failed to set language to ",
+    "Неизвестный язык с кодом": "Unknown language with code ",
+    "Файл локализации языка: ": "Locale file for language: ",
+    "Обработка корневого маршрута": "Processing root route",
+    "Невозможно открыть файл журнала!": "Unable to open log file!",
+    "Не удалось создать директорию локализации: ": "Failed to create locale directory: ",
+    "Language directory cannot be empty": "Language directory cannot be empty"
+}

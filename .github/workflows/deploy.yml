@@ -1,0 +1,40 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - main
+      - wui
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./wui
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Modify BrowserRouter to HashRouter and change homepage
+        run: |
+          sed -i 's/BrowserRouter/HashRouter/' src/index.tsx
+          sed -i 's|"homepage": ".*"|"homepage": "https://dan0102dan.github.io/kvas-pro"|' package.json
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build and deploy
+        run: |
+          npm run build
+          git config --global user.email "actions@github.com"
+          git config --global user.name "GitHub Action"
+          git checkout --orphan gh-pages
+          git --work-tree build add --all
+          git --work-tree build commit -m "GitHub Pages deployment"
+          git push origin HEAD:gh-pages --force

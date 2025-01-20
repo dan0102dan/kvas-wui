@@ -1,0 +1,20 @@
+{
+    "server": {
+      "port": 8080,
+      "address": "0.0.0.0",
+      "threads": 4
+    },
+    "database": {
+      "host": "localhost",
+      "port": 5432,
+      "user": "mydbuser",
+      "password": "mydbpassword",
+      "name": "mydbname"
+    },
+    "logging": {
+      "level": "debug",
+      "file": "app.log"
+    },
+    "timeout": 30
+  }
+  

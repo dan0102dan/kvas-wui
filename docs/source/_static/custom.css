@@ -1,0 +1,71 @@
+/* Применение шрифта Helvetica ко всему тексту */
+body {
+    font-family: "Helvetica Neue", Arial, sans-serif;
+}
+
+/* При необходимости можно настроить шрифт для заголовков */
+h1, h2, h3, h4, h5, h6 {
+    font-family: "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Убираем ссылку на исходник */
+a[href*="_sources/index.rst.txt"] {
+    display: none;
+}
+Стили для селектора версий
+.rst-versions {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 300px;
+    background: #1f1d1d;
+    color: #fff;
+    font-size: 14px;
+}
+
+.rst-versions .rst-current-version {
+    padding: 12px;
+    background-color: #272525;
+    display: block;
+    text-align: right;
+    cursor: pointer;
+}
+
+.rst-versions .rst-other-versions {
+    display: none;
+    padding: 12px;
+}
+
+.rst-versions.shift-up .rst-other-versions {
+    display: block;
+}
+
+.rst-versions dl {
+    margin: 0;
+}
+
+.rst-versions dt {
+    color: #fff;
+    font-weight: bold;
+}
+
+.rst-versions dd {
+    margin: 0;
+    padding: 6px 0;
+}
+
+.rst-versions dd a {
+    color: #fcfcfc;
+    text-decoration: none;
+}
+
+.rst-versions dd a:hover {
+    color: #2980B9;
+}
+
+/* Адаптивность для мобильных устройств */
+@media screen and (max-width: 768px) {
+    .rst-versions {
+        width: 100%;
+    }
+}
