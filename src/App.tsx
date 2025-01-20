@@ -1,37 +1,40 @@
-import React from 'react'
-import { Routes, Route } from 'react-router-dom'
-import { AppShell } from '@mantine/core'
+import { Outlet } from 'react-router-dom'
+import { MantineProvider, AppShell } from '@mantine/core'
+import { Notifications } from '@mantine/notifications'
 import { useDisclosure } from '@mantine/hooks'
-import { Header, Navbar } from './components'
-import { routes } from './pages/routes'
 
-const App: React.FC = () => {
-  const [opened, { toggle }] = useDisclosure()
+import { Header, Navbar } from './components'
+import { useAuth } from './contexts'
+
+function App() {
+  const [opened, { toggle }] = useDisclosure(false)
+  const { user } = useAuth()
 
   return (
-    <AppShell
-      header={{ height: { base: 60 } }}
-      navbar={{
-        width: { base: 220 },
-        breakpoint: 'sm',
-        collapsed: { mobile: !opened },
-      }}
-      padding="md"
-    >
-      <AppShell.Header>
-        <Header opened={opened} toggle={toggle} />
-      </AppShell.Header>
-      <AppShell.Navbar>
-        <Navbar toggle={toggle} />
-      </AppShell.Navbar>
-      <AppShell.Main>
-        <Routes>
-          {routes.map(({ path, element }) => (
-            <Route key={path} path={path} element={element} />
-          ))}
-        </Routes>
-      </AppShell.Main>
-    </AppShell>
+    <MantineProvider theme={{ defaultRadius: 'md' }}>
+      <Notifications />
+      <AppShell
+        // disabled={!user} // чтобы интерфейс был задизейблен без user
+        header={{ height: { base: 60 } }}
+        navbar={{
+          width: { base: 220 },
+          breakpoint: 'sm',
+          collapsed: { mobile: !opened },
+        }}
+      >
+        <AppShell.Header>
+          <Header opened={opened} toggle={toggle} />
+        </AppShell.Header>
+
+        <AppShell.Navbar>
+          <Navbar toggle={toggle} />
+        </AppShell.Navbar>
+
+        <AppShell.Main>
+          <Outlet />
+        </AppShell.Main>
+      </AppShell>
+    </MantineProvider>
   )
 }
 

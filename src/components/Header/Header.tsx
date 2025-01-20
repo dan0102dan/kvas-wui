@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react'
+import React from 'react'
+import { Group, Burger, Code, Avatar, Tooltip } from '@mantine/core'
 import { Link } from 'react-router-dom'
-import { Group, Burger, Code, Avatar } from '@mantine/core'
 import { IconUserCircle } from '@tabler/icons-react'
 import packageJson from '../../../package.json'
+import { useAuth } from '../../contexts'
 
 interface HeaderProps {
     opened: boolean
@@ -10,40 +11,40 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ opened, toggle }) => {
-    const [authorized, setAuthorized] = useState<string>('')
+    const { user } = useAuth()
 
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setAuthorized('A' + Math.random().toString(36).substring(2, 4).toUpperCase())
-        }, 5000)
-
-        return () => clearInterval(interval)
-    }, [])
+    const initials = user?.userId
+        ? user.userId.toString().slice(0, 2)
+        : null
 
     return (
-        <Group
-            h='100%'
-            px="md"
-            align="center"
-            justify='space-between'
-        >
+        <Group h="100%" px="md" align="center" justify="space-between">
             <Group>
-                <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
-                <Avatar
-                    component={Link}
-                    to='/profile'
-                    color='initials'
-                    name={authorized}
-                    radius="xl"
+                <Burger
+                    opened={opened}
+                    onClick={toggle}
+                    hiddenFrom="sm"
+                    size="sm"
+                />
+                <Tooltip
+                    label={'Личный кабинет'}
+                    position="bottom"
+                    withArrow
                 >
-                    {!authorized && <IconUserCircle />}
-                </Avatar>
+                    <Avatar
+                        component={Link}
+                        to="/profile"
+                        color="initials"
+                        radius="xl"
+                    >
+                        {user ? initials : <IconUserCircle size={20} />}
+                    </Avatar>
+                </Tooltip>
             </Group>
 
-            <Code fw={700}>
-                v{packageJson.version}
-            </Code>
+            <Code fw={700}>v{packageJson.version}</Code>
         </Group>
     )
 }
+
 export default Header
