@@ -27,17 +27,6 @@ const Home: React.FC = () => {
 
     return (
         <>
-            {/* Фоновый компонент */}
-            <NetworkBackground
-                numberOfNodes={30}
-                lineDistance={140}
-                baseDotSize={3}
-                sizeGrowthFactor={0.25}
-                animationSpeed={0.8}
-                fpsLimit={60}
-                enableClickToAdd
-            />
-
             <Flex
                 direction="column"
                 // вычитаем размер Header'а
@@ -140,7 +129,18 @@ const Home: React.FC = () => {
                         </Card>
                     ))}
                 </SimpleGrid>
-            </Container >
+            </Container>
+            {/* Фоновый компонент */}
+            <NetworkBackground
+                numberOfNodes={30}
+                lineDistance={140}
+                baseDotSize={3}
+                sizeGrowthFactor={0.25}
+                animationSpeed={0.8}
+                fpsLimit={60}
+                enableClickToAdd
+                maxParticles={60}
+            />
         </>
     )
 }

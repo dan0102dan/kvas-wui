@@ -21,7 +21,6 @@ import { NavLink, useNavigate } from 'react-router-dom'
 
 import type { Plan } from '../api/types'
 import { createUser, getPlans, sendConfirmationCode } from '../api/test'
-import { useAuth } from '../contexts'
 
 /** Сравнение введённого кода с "реальным" */
 function fakeCheckCode(inputCode: string, realCode: string) {
@@ -39,7 +38,6 @@ function fakeInitConfig(dns: string, internet: string) {
 
 const SetupPage: React.FC = () => {
     const navigate = useNavigate()
-    const { user } = useAuth()
 
     // Три шага мастера. Начинаем с шага 0 (чтобы Stepper был в состоянии "Шаг 1")
     const [step, setStep] = useState<number>(0)
@@ -51,7 +49,7 @@ const SetupPage: React.FC = () => {
 
     // Шаг 2
     const [plans, setPlans] = useState<Plan[]>([])
-    const [subscriptionChoice, setSubscriptionChoice] = useState<string | null>(null)
+    const [, setSubscriptionChoice] = useState<string | null>(null)
 
     // Шаг 3
     const [dns, setDns] = useState('')

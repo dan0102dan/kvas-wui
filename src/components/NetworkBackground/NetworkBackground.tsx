@@ -6,16 +6,17 @@ import React, {
 import styles from './NetworkBackground.module.css'
 
 interface NetworkBackgroundProps {
-  numberOfNodes?: number // изначальное количество узлов в сети
-  lineDistance?: number // максимальное расстояние для соединения двух точек линией
-  dotColor?: string // базовый цвет точек
-  lineColor?: string // базовый цвет соединительных линий
-  baseDotSize?: number // базовый размер точки для узла с нулевыми соединениями
-  sizeGrowthFactor?: number // насколько больше становится каждая точка за каждое соединение
-  animationSpeed?: number // множитель скорости для скоростей частиц
-  fpsLimit?: number // предел частоты кадров для производительности (например, 30 или 60)
-  backgroundColor?: string // цвет фона холста (например, 'transparent' или '#000')
-  enableClickToAdd?: boolean // может ли пользователь щелкнуть по фону, чтобы добавить новые точки
+  numberOfNodes?: number // начальное количество узлов
+  lineDistance?: number  // максимальное расстояние для линии
+  dotColor?: string      // цвет точек
+  lineColor?: string     // цвет линий
+  baseDotSize?: number   // базовый радиус точки
+  sizeGrowthFactor?: number  // рост радиуса за счёт соседей
+  animationSpeed?: number    // множитель скорости анимации
+  fpsLimit?: number          // ограничение FPS
+  backgroundColor?: string   // цвет фона холста
+  enableClickToAdd?: boolean // добавлять ли точки по клику
+  maxParticles?: number      // максимальное число точек (для автоудаления старых)
 }
 
 interface Particle {
@@ -28,64 +29,52 @@ interface Particle {
 const NetworkBackground: React.FC<NetworkBackgroundProps> = ({
   numberOfNodes = 25,
   lineDistance = 130,
-  dotColor = 'rgba(173, 216, 230, 0.15)',
-  lineColor = 'rgba(173, 216, 230, 0.1)',
+  dotColor = 'rgba(138, 206, 229, 0.05)',
+  lineColor = 'rgba(128, 203, 228, 0.07)',
   baseDotSize = 4,
   sizeGrowthFactor = 0.3,
   animationSpeed = 1.0,
   fpsLimit = 60,
   backgroundColor = 'transparent',
   enableClickToAdd = true,
+  maxParticles = Infinity, // по умолчанию не ограничиваем
 }) => {
   const containerRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
-  // хранит частицы в ref, чтобы не перерисовывать на каждом кадре анимации.
+  // Основные структуры данных
   const particlesRef = useRef<Particle[]>([])
-
-  // хранит список смежности (для каждой частицы, с какими другими частицами она соединена?)
   const adjacencyRef = useRef<number[][]>([])
-
-  // хранит идентификатор кадра, чтобы можно было отменить его при размонтировании.
   const frameIdRef = useRef<number>(0)
   const lastFrameTimeRef = useRef<number>(0)
 
-  // хранит индексы частиц в сетке, чтобы можно было быстро найти ближайших соседей.
   const gridRef = useRef<Map<string, number[]>>(new Map())
-
-  // каждая ячейка будет lineDistance×lineDistance, чтобы мы проверяли только локальных соседей.
   const cellSize = lineDistance
+  const cellKey = useCallback((r: number, c: number) => `${r},${c}`, [])
 
-  // создает ключ из строки/столбца для идентификации ячейки сетки.
-  const cellKey = (r: number, c: number) => `${r},${c}`
-
-  // расстояние между двумя частицами.
   const getDistance = (p1: Particle, p2: Particle) => {
     const dx = p2.x - p1.x
     const dy = p2.y - p1.y
     return Math.sqrt(dx * dx + dy * dy)
   }
 
-  // инициализация частиц в рандомных позициях
-  const initParticles = useCallback(
-    (width: number, height: number) => {
-      const particles: Particle[] = []
-      for (let i = 0; i < numberOfNodes; i++) {
-        particles.push({
-          x: Math.random() * width,
-          y: Math.random() * height,
-          vx: (Math.random() - 0.5) * 0.5 * animationSpeed,
-          vy: (Math.random() - 0.5) * 0.5 * animationSpeed,
-        })
-      }
-      particlesRef.current = particles
-      adjacencyRef.current = Array.from({ length: particles.length }, () => [])
-    },
-    [numberOfNodes, animationSpeed]
-  )
+  // Инициализация начальных точек
+  const initParticles = useCallback((width: number, height: number) => {
+    const particles: Particle[] = []
+    for (let i = 0; i < numberOfNodes; i++) {
+      particles.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        vx: (Math.random() - 0.5) * 0.5 * animationSpeed,
+        vy: (Math.random() - 0.5) * 0.5 * animationSpeed,
+      })
+    }
+    particlesRef.current = particles
+    adjacencyRef.current = Array.from({ length: particles.length }, () => [])
+  }, [numberOfNodes, animationSpeed])
 
-  // создает сетку для быстрого поиска ближайших соседей.
-  const buildSpatialGrid = (width: number, height: number) => {
+  // Построение сетки для ускорения поиска соседей
+  const buildSpatialGrid = useCallback((width: number, height: number) => {
     gridRef.current.clear()
     const particles = particlesRef.current
     for (let i = 0; i < particles.length; i++) {
@@ -98,18 +87,15 @@ const NetworkBackground: React.FC<NetworkBackgroundProps> = ({
       }
       gridRef.current.get(key)?.push(i)
     }
-  }
+  }, [cellSize, cellKey])
 
-  // строит список смежности, сравнивая только локальные/близлежащие ячейки для каждой частицы.
+  // Сбор списка смежности на основе сетки
   const buildAdjacency = useCallback((width: number, height: number) => {
     const n = particlesRef.current.length
-    // сбросить список смежности
     adjacencyRef.current = Array.from({ length: n }, () => [])
 
-    // создать сетку для быстрого поиска ближайших соседей
     buildSpatialGrid(width, height)
 
-    // проверим каждую ячейку плюс ее 8 соседей
     const neighborOffsets = [
       [0, 0],
       [0, 1],
@@ -134,10 +120,8 @@ const NetworkBackground: React.FC<NetworkBackgroundProps> = ({
         if (!gridRef.current.has(neighborKey)) continue
         const indicesNeighbor = gridRef.current.get(neighborKey) ?? []
 
-        // сравниваем каждую частицу в "indicesHere" с каждой в "indicesNeighbor"
         for (const i of indicesHere) {
           for (const j of indicesNeighbor) {
-            // чтобы избежать повторений
             if (j <= i) continue
             const pairKey = `${i}-${j}`
             if (visitedPairs.has(pairKey)) continue
@@ -153,10 +137,10 @@ const NetworkBackground: React.FC<NetworkBackgroundProps> = ({
         }
       }
     }
-  }, [lineDistance])
+  }, [lineDistance, buildSpatialGrid, cellKey])
 
-  // обновляет позиции частиц, отражаясь от краев в зависимости от размера каждой частицы (соседи -> больший радиус).
-  const updateParticles = (width: number, height: number) => {
+  // Обновление позиций
+  const updateParticles = useCallback((width: number, height: number) => {
     const particles = particlesRef.current
     const adjacency = adjacencyRef.current
 
@@ -165,11 +149,10 @@ const NetworkBackground: React.FC<NetworkBackgroundProps> = ({
       const radius = baseDotSize + sizeGrowthFactor * neighborCount
       const p = particles[i]
 
-      // движение
       p.x += p.vx
       p.y += p.vy
 
-      // отражение от левого и правого краев
+      // Отражение от краёв
       if (p.x - radius < 0) {
         p.x = radius
         p.vx = -p.vx
@@ -177,7 +160,6 @@ const NetworkBackground: React.FC<NetworkBackgroundProps> = ({
         p.x = width - radius
         p.vx = -p.vx
       }
-      // отражение от верха и низа
       if (p.y - radius < 0) {
         p.y = radius
         p.vy = -p.vy
@@ -186,56 +168,60 @@ const NetworkBackground: React.FC<NetworkBackgroundProps> = ({
         p.vy = -p.vy
       }
     }
-  }
+  }, [baseDotSize, sizeGrowthFactor])
 
-  // рисует линии между соединенными частицами, затем сами частицы.
-  const drawParticles = (
-    ctx: CanvasRenderingContext2D,
-    width: number,
-    height: number
-  ) => {
-    ctx.clearRect(0, 0, width, height)
+  // Рисование линий и частиц
+  const drawParticles = useCallback(
+    (
+      ctx: CanvasRenderingContext2D,
+      width: number,
+      height: number
+    ) => {
+      ctx.clearRect(0, 0, width, height)
 
-    const particles = particlesRef.current
-    const adjacency = adjacencyRef.current
+      const particles = particlesRef.current
+      const adjacency = adjacencyRef.current
 
-    // Draw lines first
-    for (let i = 0; i < particles.length; i++) {
-      for (const j of adjacency[i]) {
-        if (j > i) {
-          ctx.beginPath()
-          ctx.moveTo(particles[i].x, particles[i].y)
-          ctx.lineTo(particles[j].x, particles[j].y)
-          ctx.strokeStyle = lineColor
-          ctx.lineWidth = 1
-          ctx.stroke()
+      // Линии
+      ctx.lineWidth = 1
+      ctx.strokeStyle = lineColor
+
+      for (let i = 0; i < particles.length; i++) {
+        for (const j of adjacency[i]) {
+          // Чтобы не рисовать пару дважды
+          if (j > i) {
+            ctx.beginPath()
+            ctx.moveTo(particles[i].x, particles[i].y)
+            ctx.lineTo(particles[j].x, particles[j].y)
+            ctx.stroke()
+          }
         }
       }
-    }
 
-    for (let i = 0; i < particles.length; i++) {
-      const neighborCount = adjacency[i].length
-      const radius = baseDotSize + sizeGrowthFactor * neighborCount
+      // Точки
+      for (let i = 0; i < particles.length; i++) {
+        const neighborCount = adjacency[i].length
+        const radius = baseDotSize + sizeGrowthFactor * neighborCount
 
-      ctx.beginPath()
-      ctx.arc(particles[i].x, particles[i].y, radius, 0, Math.PI * 2)
-      ctx.fillStyle = dotColor
-      ctx.fill()
-    }
-  }
+        ctx.beginPath()
+        ctx.arc(particles[i].x, particles[i].y, radius, 0, Math.PI * 2)
+        ctx.fillStyle = dotColor
+        ctx.fill()
+      }
+    },
+    [lineColor, dotColor, baseDotSize, sizeGrowthFactor]
+  )
 
-  // основной цикл анимации (с ограничением FPS)
+  // Анимационный цикл с учётом лимита FPS
   const animate = useCallback(
     (time: number) => {
       if (!canvasRef.current) return
-
       const ctx = canvasRef.current.getContext('2d')
       if (!ctx) return
 
-      const width = canvasRef.current.width
-      const height = canvasRef.current.height
+      const { width, height } = canvasRef.current
 
-      // FPS лимит
+      // Ограничение FPS
       const delta = time - lastFrameTimeRef.current
       const interval = 1000 / fpsLimit
       if (delta < interval) {
@@ -250,10 +236,10 @@ const NetworkBackground: React.FC<NetworkBackgroundProps> = ({
 
       frameIdRef.current = requestAnimationFrame(animate)
     },
-    [fpsLimit, buildAdjacency]
+    [fpsLimit, buildAdjacency, drawParticles, updateParticles]
   )
 
-  // обработчик клика для добавления новой частицы
+  // Добавление новой частицы по клику
   const handleClick = useCallback(
     (e: MouseEvent) => {
       if (!enableClickToAdd || !canvasRef.current) return
@@ -268,12 +254,29 @@ const NetworkBackground: React.FC<NetworkBackgroundProps> = ({
         vx: (Math.random() - 0.5) * 0.5 * animationSpeed,
         vy: (Math.random() - 0.5) * 0.5 * animationSpeed,
       })
-      adjacencyRef.current.push([]) // new adjacency entry for the new particle
+      adjacencyRef.current.push([]) // добавляем пустой список смежности
+
+      // Если превышаем maxParticles, удаляем самую старую
+      if (particlesRef.current.length > maxParticles) {
+        // Удаляем из начала
+        particlesRef.current.shift()
+        adjacencyRef.current.shift()
+
+        // Нужно сдвинуть индексы во всех списках смежности
+        adjacencyRef.current.forEach(adjList => {
+          for (let i = adjList.length - 1; i >= 0; i--) {
+            if (adjList[i] === 0) {
+              adjList.splice(i, 1)
+            } else if (adjList[i] > 0) {
+              adjList[i] = adjList[i] - 1
+            }
+          }
+        })
+      }
     },
-    [enableClickToAdd, animationSpeed]
+    [enableClickToAdd, animationSpeed, maxParticles]
   )
 
-  // инициализация и запуск анимации
   useEffect(() => {
     if (!containerRef.current || !canvasRef.current) return
 
@@ -283,18 +286,38 @@ const NetworkBackground: React.FC<NetworkBackgroundProps> = ({
     canvas.height = rect.height
     canvas.style.backgroundColor = backgroundColor
 
+    // Инициализируем набор точек один раз
     initParticles(rect.width, rect.height)
+
+    // Запускаем анимацию
     frameIdRef.current = requestAnimationFrame(animate)
 
-    // Observe container resizing
+    // Ресайз-обсервер: меняем размеры холста без пересоздания всех точек
     const resizeObserver = new ResizeObserver(() => {
-      const newRect = containerRef.current!.getBoundingClientRect()
+      if (!containerRef.current || !canvasRef.current) return
+      const newRect = containerRef.current.getBoundingClientRect()
+
+      // Запоминаем старые размеры, чтобы при желании масштабировать точки
+      const oldWidth = canvas.width
+      const oldHeight = canvas.height
+
       canvas.width = newRect.width
       canvas.height = newRect.height
-      initParticles(newRect.width, newRect.height)
+
+      // Пример: если хотим «масштабировать» старые координаты
+      if (oldWidth > 0 && oldHeight > 0) {
+        const scaleX = newRect.width / oldWidth
+        const scaleY = newRect.height / oldHeight
+
+        particlesRef.current.forEach(p => {
+          p.x *= scaleX
+          p.y *= scaleY
+        })
+      }
     })
     resizeObserver.observe(containerRef.current)
 
+    // Обработчик клика
     window.addEventListener('click', handleClick)
 
     return () => {
