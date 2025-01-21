@@ -10,6 +10,13 @@
             "light": "Светлая",
             "dark": "Темная",
             "auto": "Автоматическая"
+        },
+        "security": {
+            "newPassword": "Новый пароль",
+            "confirmPassword": "Подтвердите пароль",
+            "changePassword": "Изменить пароль",
+            "logout": "Выйти",
+            "change": "Изменить"
         }
     },
     "notifications": {

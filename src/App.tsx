@@ -1,5 +1,5 @@
 import { Outlet } from 'react-router-dom'
-import { AppShell } from '@mantine/core'
+import { AppShell, ScrollArea } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 
 import { Header, Navbar, Aside } from './components'
@@ -21,7 +21,7 @@ function App() {
         collapsed: { mobile: !navbarOpened },
       }}
       aside={{
-        width: { base: 250 },
+        width: { base: 220 },
         breakpoint: 'sm',
         collapsed: { mobile: !asideOpened, desktop: !asideOpened },
       }}
@@ -36,10 +36,12 @@ function App() {
       </AppShell.Header>
 
       <AppShell.Navbar>
-        <Navbar toggle={toggleNavbar} />
+        <AppShell.Section component={ScrollArea}>
+          <Navbar toggle={toggleNavbar} />
+        </AppShell.Section>
       </AppShell.Navbar>
 
-      <AppShell.Aside>
+      <AppShell.Aside p='md'>
         <Aside />
       </AppShell.Aside>
 
