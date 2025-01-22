@@ -20,7 +20,6 @@ const AsidePanel: React.FC = () => {
     const { t, setLang, lang } = useLang()
     const { colorScheme, setColorScheme } = useMantineColorScheme()
 
-    // Логика защиты
     const {
         hasPassword,
         isUnlocked,
@@ -29,7 +28,6 @@ const AsidePanel: React.FC = () => {
         logout,
     } = useSecurity()
 
-    // Локальные состояния для Popover
     const [popoverOpened, setPopoverOpened] = useState(false)
     const [newPwd, setNewPwd] = useState('')
 
@@ -46,13 +44,13 @@ const AsidePanel: React.FC = () => {
 
     return (
         <ScrollArea>
-            <Text size="sm" c="dimmed" mb="md">
+            <Text size="sm" c="dimmed">
                 v{packageJson.version}
             </Text>
 
-            <Divider mb="md" variant="dashed" />
+            <Divider my="md" variant="dashed" />
 
-            <Stack gap="sm" mb="md">
+            <Stack gap="sm">
                 <Text size="sm" fw={500}>
                     {t('settings.language.change')}
                 </Text>
@@ -67,7 +65,7 @@ const AsidePanel: React.FC = () => {
                 />
             </Stack>
 
-            <Divider mb="md" variant="dashed" />
+            <Divider my="md" variant="dashed" />
 
             <Stack gap="sm">
                 <Text size="sm" fw={500}>
@@ -85,9 +83,8 @@ const AsidePanel: React.FC = () => {
                 />
             </Stack>
 
-            <Divider mt="md" mb="md" />
+            <Divider my="md" variant="dashed" />
 
-            {/* Блок управления паролем */}
             <Stack>
                 {hasPassword ? (
                     <>
