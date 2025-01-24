@@ -1,19 +1,24 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { notifications } from '@mantine/notifications'
-import { Modal, TextInput, Button, Stack, Text } from '@mantine/core'
+import {
+    Center,
+    Card,
+    Text,
+    TextInput,
+    Button,
+    Stack,
+} from '@mantine/core'
 
 interface SecurityContextValue {
-    hasPassword: boolean      // Есть ли пароль вообще
-    isUnlocked: boolean       // Разблокировано ли сейчас
+    hasPassword: boolean         // Whether a password is set
+    isUnlocked: boolean          // Whether the interface is currently unlocked
     setPassword: (newPwd: string) => void
     removePassword: () => void
     logout: () => void
     checkPassword: (pwd: string) => boolean
 }
 
-/**
- * Контекст для пароля/защиты
- */
+// Default implementation to avoid TS errors:
 const SecurityContext = createContext<SecurityContextValue>({
     hasPassword: false,
     isUnlocked: true,
@@ -26,22 +31,17 @@ const SecurityContext = createContext<SecurityContextValue>({
 export function SecurityProvider({ children }: { children: React.ReactNode }) {
     const [hasPassword, setHasPassword] = useState(false)
     const [isUnlocked, setIsUnlocked] = useState(true)
-    const [askPassword, setAskPassword] = useState(false)
     const [inputValue, setInputValue] = useState('')
 
-    // 1. При первом рендере проверяем localStorage
     useEffect(() => {
         const storedPassword = localStorage.getItem('appPassword')
         if (storedPassword) {
             setHasPassword(true)
             setIsUnlocked(false)
-            setAskPassword(true) // Показываем окно ввода
         } else {
-            // Если пароля нет — уведомляем пользователя (покажется единожды, так как useEffect с пустым deps)
             notifications.show({
-                title: 'Внимание',
-                message:
-                    'Интерфейс не защищен паролем. Вы можете установить пароль в настройках.',
+                title: 'Пароль не установлен',
+                message: 'Вы можете установить пароль в настройках.',
                 color: 'yellow',
             })
         }
@@ -62,12 +62,11 @@ export function SecurityProvider({ children }: { children: React.ReactNode }) {
         }
         localStorage.setItem('appPassword', pwd)
         setHasPassword(true)
+        // Lock immediately after setting, so user must re-enter the new password
         setIsUnlocked(false)
-        setAskPassword(true) // Просим ввести для разблокировки
         notifications.show({
             title: 'Пароль установлен',
-            message:
-                'Теперь интерфейс защищен паролем. Для доступа введите установленный пароль.',
+            message: 'Интерфейс защищён. Введите ваш пароль для разблокировки.',
             color: 'blue',
         })
     }
@@ -79,10 +78,9 @@ export function SecurityProvider({ children }: { children: React.ReactNode }) {
         localStorage.removeItem('appPassword')
         setHasPassword(false)
         setIsUnlocked(true)
-        setAskPassword(false)
         notifications.show({
-            title: 'Защита снята',
-            message: 'Пароль удален, теперь интерфейс не защищен.',
+            title: 'Пароль удалён',
+            message: 'Интерфейс больше не защищён паролем.',
             color: 'yellow',
         })
     }
@@ -100,7 +98,6 @@ export function SecurityProvider({ children }: { children: React.ReactNode }) {
             return
         }
         setIsUnlocked(false)
-        setAskPassword(true)
         notifications.show({
             title: 'Блокировка',
             message: 'Интерфейс заблокирован. Введите пароль для разблокировки.',
@@ -115,7 +112,12 @@ export function SecurityProvider({ children }: { children: React.ReactNode }) {
         const storedPassword = localStorage.getItem('appPassword') || ''
         if (pwd === storedPassword) {
             setIsUnlocked(true)
-            setAskPassword(false)
+            setInputValue('')
+            notifications.show({
+                title: 'Разблокировано',
+                message: 'Добро пожаловать!',
+                color: 'green',
+            })
             return true
         } else {
             notifications.show({
@@ -127,9 +129,35 @@ export function SecurityProvider({ children }: { children: React.ReactNode }) {
         }
     }
 
-    // Флаг для показа модального окна ввода пароля:
-    // Показываем, если пароль установлен, интерфейс заблокирован и требуется ввод.
-    const shouldShowModal = hasPassword && !isUnlocked && askPassword
+    /**
+     * If the interface is locked, render a centered "login" card instead of the protected content.
+     */
+    if (hasPassword && !isUnlocked) {
+        return (
+            <Center style={{ width: '100%', height: '100vh' }}>
+                <Card shadow="md" padding="lg" withBorder>
+                    <Stack gap="md">
+                        <Text w={500} size="lg">
+                            Интерфейс заблокирован
+                        </Text>
+                        <TextInput
+                            placeholder="Введите пароль"
+                            type="password"
+                            value={inputValue}
+                            onChange={(e) => setInputValue(e.currentTarget.value)}
+                        />
+                        <Button
+                            onClick={() => {
+                                checkPassword(inputValue)
+                            }}
+                        >
+                            Разблокировать
+                        </Button>
+                    </Stack>
+                </Card>
+            </Center>
+        )
+    }
 
     return (
         <SecurityContext.Provider
@@ -142,42 +170,6 @@ export function SecurityProvider({ children }: { children: React.ReactNode }) {
                 checkPassword,
             }}
         >
-            {/* Модальное окно для ввода пароля */}
-            <Modal
-                opened={shouldShowModal}
-                onClose={() => { }}
-                withCloseButton={false}
-                closeOnClickOutside={false}
-                closeOnEscape={false}
-                title="Введите пароль"
-                centered
-                overlayProps={{
-                    backgroundOpacity: 0.55,
-                    blur: 7,
-                }}
-            >
-                <Stack>
-                    <Text size="sm" c="dimmed">
-                        Интерфейс защищен паролем.
-                    </Text>
-                    <TextInput
-                        data-autofocus
-                        placeholder="****"
-                        type="password"
-                        value={inputValue}
-                        onChange={(e) => setInputValue(e.target.value)}
-                    />
-                    <Button
-                        onClick={() => {
-                            checkPassword(inputValue)
-                            setInputValue('')
-                        }}
-                    >
-                        Разблокировать
-                    </Button>
-                </Stack>
-            </Modal>
-
             {children}
         </SecurityContext.Provider>
     )

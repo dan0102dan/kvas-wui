@@ -36,11 +36,11 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
     <MantineProvider defaultColorScheme="auto" theme={{ defaultRadius: 'md' }}>
       <Notifications />
       <LangProvider>
-        <SecurityProvider>
-          <AuthProvider>
+        <AuthProvider>
+          <SecurityProvider>
             <RouterProvider router={router} />
-          </AuthProvider>
-        </SecurityProvider>
+          </SecurityProvider>
+        </AuthProvider>
       </LangProvider>
     </MantineProvider>
   </React.StrictMode>,
