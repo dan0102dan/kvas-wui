@@ -10,16 +10,17 @@ import {
     Popover,
     TextInput,
     Button,
+    Alert,
+    Group
 } from '@mantine/core'
 import packageJson from '../../../package.json'
 import { useLang, availableTranslations, Lang, useSecurity } from '../../contexts'
-import { IconLock, IconLockOpen } from '@tabler/icons-react'
+import { IconLock, IconLockOpen, IconAlertCircle } from '@tabler/icons-react'
 import styles from './Aside.module.css'
 
 const AsidePanel: React.FC = () => {
     const { t, setLang, lang } = useLang()
     const { colorScheme, setColorScheme } = useMantineColorScheme()
-
     const {
         hasPassword,
         isUnlocked,
@@ -30,8 +31,10 @@ const AsidePanel: React.FC = () => {
 
     const [popoverOpened, setPopoverOpened] = useState(false)
     const [newPwd, setNewPwd] = useState('')
+    const [confirmDelete, setConfirmDelete] = useState(false)
 
     const handleSetPassword = () => {
+        if (!newPwd) return
         setPassword(newPwd)
         setNewPwd('')
         setPopoverOpened(false)
@@ -39,6 +42,7 @@ const AsidePanel: React.FC = () => {
 
     const handleRemovePassword = () => {
         removePassword()
+        setConfirmDelete(false)
         setPopoverOpened(false)
     }
 
@@ -89,7 +93,7 @@ const AsidePanel: React.FC = () => {
                 {hasPassword ? (
                     <>
                         <Text size="sm" fw={500} c="dimmed">
-                            Интерфейс защищён паролем
+                            {t('settings.security.active')}
                         </Text>
 
                         <Popover
@@ -109,31 +113,58 @@ const AsidePanel: React.FC = () => {
                                 </Button>
                             </Popover.Target>
                             <Popover.Dropdown>
-                                <Text size="sm" w={500} mb="xs">
-                                    {t('settings.security.changePassword')}
-                                </Text>
-                                <TextInput
-                                    type="password"
-                                    value={newPwd}
-                                    onChange={(e) => setNewPwd(e.target.value)}
-                                    placeholder={t('settings.security.newPassword')}
-                                    mb="xs"
-                                />
-                                <Button
-                                    fullWidth
-                                    mb="xs"
-                                    onClick={handleSetPassword}
-                                >
-                                    {t('settings.security.setNewPassword')}
-                                </Button>
-                                <Button
-                                    fullWidth
-                                    color="red"
-                                    variant="outline"
-                                    onClick={handleRemovePassword}
-                                >
-                                    {t('settings.security.removePassword')}
-                                </Button>
+                                {confirmDelete ? (
+                                    <Stack gap="sm">
+                                        <Alert icon={<IconAlertCircle size={18} />} color="red">
+                                            {t('settings.security.confirmRemove')}
+                                        </Alert>
+                                        <Group grow>
+                                            <Button
+                                                size="sm"
+                                                variant="default"
+                                                onClick={() => setConfirmDelete(false)}
+                                            >
+                                                {t('common.cancel')}
+                                            </Button>
+                                            <Button
+                                                size="sm"
+                                                color="red"
+                                                onClick={handleRemovePassword}
+                                            >
+                                                {t('common.confirm')}
+                                            </Button>
+                                        </Group>
+                                    </Stack>
+                                ) : (
+                                    <>
+                                        <Text size="sm" mb="xs">
+                                            {t('settings.security.changePassword')}
+                                        </Text>
+                                        <TextInput
+                                            type="password"
+                                            value={newPwd}
+                                            onChange={(e) => setNewPwd(e.target.value)}
+                                            placeholder={t('settings.security.newPassword')}
+                                            mb="xs"
+                                        />
+                                        <Button
+                                            fullWidth
+                                            mb="xs"
+                                            onClick={handleSetPassword}
+                                            disabled={!newPwd}
+                                        >
+                                            {t('settings.security.setNewPassword')}
+                                        </Button>
+                                        <Button
+                                            fullWidth
+                                            color="red"
+                                            variant="outline"
+                                            onClick={() => setConfirmDelete(true)}
+                                        >
+                                            {t('settings.security.removePassword')}
+                                        </Button>
+                                    </>
+                                )}
                             </Popover.Dropdown>
                         </Popover>
 
@@ -143,7 +174,7 @@ const AsidePanel: React.FC = () => {
                                 variant="light"
                                 color="red"
                                 onClick={logout}
-                                leftSection={<IconLock />}
+                                leftSection={<IconLock size={18} />}
                             >
                                 {t('settings.security.logout')}
                             </Button>
@@ -152,7 +183,7 @@ const AsidePanel: React.FC = () => {
                 ) : (
                     <>
                         <Text size="sm" c="dimmed">
-                            Интерфейс не защищён паролем
+                            {t('settings.security.inactive')}
                         </Text>
                         <Popover
                             opened={popoverOpened}
@@ -165,14 +196,14 @@ const AsidePanel: React.FC = () => {
                                     classNames={{ root: styles.button, label: styles.textWrap, inner: styles.inner }}
                                     variant="light"
                                     color="blue"
-                                    leftSection={<IconLockOpen />}
+                                    leftSection={<IconLockOpen size={18} />}
                                     onClick={() => setPopoverOpened((o) => !o)}
                                 >
                                     {t('settings.security.setPassword')}
                                 </Button>
                             </Popover.Target>
                             <Popover.Dropdown>
-                                <Text size="sm" w={500} mb="xs">
+                                <Text size="sm" mb="xs">
                                     {t('settings.security.newPassword')}
                                 </Text>
                                 <TextInput
@@ -185,6 +216,7 @@ const AsidePanel: React.FC = () => {
                                 <Button
                                     fullWidth
                                     onClick={handleSetPassword}
+                                    disabled={!newPwd}
                                 >
                                     {t('settings.security.save')}
                                 </Button>
@@ -193,7 +225,7 @@ const AsidePanel: React.FC = () => {
                     </>
                 )}
             </Stack>
-        </ScrollArea >
+        </ScrollArea>
     )
 }
 

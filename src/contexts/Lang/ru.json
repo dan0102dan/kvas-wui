@@ -12,9 +12,11 @@
             "auto": "Автоматическая"
         },
         "security": {
+            "setPassword": "Установить пароль",
             "newPassword": "Новый пароль",
             "confirmPassword": "Подтвердите пароль",
             "changePassword": "Изменить пароль",
+            "save": "Сохранить",
             "logout": "Выйти",
             "change": "Изменить"
         }
