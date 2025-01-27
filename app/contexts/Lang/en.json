@@ -1,0 +1,52 @@
+{
+    "settings": {
+        "language": {
+            "change": "Change language",
+            "placeholder": "Select language",
+            "ru": "Русский 🇷🇺",
+            "en": "English 🇺🇸"
+        },
+        "theme": {
+            "change": "Change theme",
+            "light": "Light",
+            "dark": "Dark",
+            "auto": "Auto"
+        }
+    },
+    "pages": {
+        "NotFound": {
+            "title": "Nothing Found",
+            "description": "The page you are trying to open does not exist. You may have mistyped the address or the page has been moved. If you believe this is an error, please contact support.",
+            "button": "Return to homepage"
+        },
+        "Home": {
+            "_": "Home",
+            "project": "Project",
+            "description": "Kvas is a convenient and intuitive utility for managing home internet. With it, you can easily configure a VPN connection, optimize DNS settings, and much more, ensuring network stability and security. All this is in one simple interface!",
+            "links": "Useful links:",
+            "tgChat": "Telegram Chat",
+            "githubRepo": "GitHub Repository"
+        },
+        "Setup": {
+            "_": "Services Configuration",
+            "dns": "DNS Settings",
+            "vpn": "VPN Settings",
+            "connection": "Internet Connection",
+            "save": "Save"
+        },
+        "whitelist": {
+            "title": "Whitelist Configuration",
+            "subtitle": "Manage allowed domains/IP for each VPN service",
+            "add": "Add"
+        },
+        "debug": {
+            "title": "Debug & Logs",
+            "logs": "Current logs for selected service",
+            "help": "Request support",
+            "attachLogs": "Attach log files"
+        },
+        "errorPage": {
+            "notFound": "404 - Page Not Found"
+        }
+    }
+}
