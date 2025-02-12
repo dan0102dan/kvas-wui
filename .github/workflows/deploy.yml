@@ -8,13 +8,13 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    working-directory: "client"
     
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
       - name: Modify BrowserRouter to HashRouter and change homepage
+        working-directory: "client"
         run: |
           sed -i 's/BrowserRouter/HashRouter/' src/index.tsx
           sed -i 's|"homepage": ".*"|"homepage": "https://dan0102dan.github.io/kvas-wui"|' package.json
@@ -25,9 +25,11 @@ jobs:
           node-version: '22'
 
       - name: Install dependencies
+        working-directory: "client"
         run: npm install
 
       - name: Build and deploy
+        working-directory: "client"
         run: |
           npm run build
           git config --global user.email "actions@github.com"
