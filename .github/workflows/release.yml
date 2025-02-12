@@ -8,7 +8,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     strategy:
       matrix:
         goarch:
@@ -28,14 +27,33 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
+      # Сборка фронтенда
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22'
+          
+      - name: Install frontend dependencies
+        run: npm install
+
+      - name: Build frontend
+        run: npm run build
+
+      # Создание архива для фронтенда
+      - name: Create frontend archive
+        run: |
+          tar -czvf build.tar.gz -C build .
+          mv build.tar.gz release-artifacts
+
+      # Сборка бэкенда
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
           go-version: '1.23'
 
-      - name: Set GOOS and GOARCH
+      - name: Build Go binaries
         working-directory: server
         env:
           GOOS: linux
@@ -43,15 +61,15 @@ jobs:
         run: |
           echo "Building for GOOS=$GOOS GOARCH=$GOARCH"
           go mod tidy
-          go build -o ../build/${{ matrix.output }}
+          go build -o ../release-artifacts/${{ matrix.output }}
 
-      - name: Upload Release Artifacts
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: release-binaries-${{ matrix.goarch }}-${{ github.run_id }}
-          path: ./build/*
-          
+          name: release-package
+          path: release-artifacts/*
+
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          files: ./build/*
+          files: ./release-artifacts/*
