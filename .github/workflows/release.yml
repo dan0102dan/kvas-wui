@@ -8,45 +8,39 @@ on:
 jobs:
   build_frontend:
     runs-on: ubuntu-latest
-    outputs:
-      frontend_archive: ${{ steps.upload-frontend.outputs.artifact }}
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      - name: Setup Node.js with cache
+        uses: actions/setup-node@v4
         with:
           node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: 'client/package-lock.json'
 
       - name: Install dependencies
         working-directory: client
-        run: npm install
+        run: npm ci --prefer-offline
 
       - name: Build frontend
         working-directory: client
         run: npm run build
 
       - name: Create frontend archive
-        run: tar -czvf build.tar.gz -C client .
+        run: tar -czf build.tar.gz -C client/build .
 
       - name: Upload frontend artifact
-        id: upload-frontend
         uses: actions/upload-artifact@v4
         with:
-          name: frontend-build
+          name: build.tar.gz
           path: build.tar.gz
 
   build_backend:
-    needs: build_frontend
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        goarch:
-          - mipsle
-          - mips
-          - arm64
+        goarch: [mipsle, mips, arm64]
         include:
           - goarch: mipsle
             goos: linux
@@ -62,44 +56,44 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Go
-        uses: actions/setup-go@v3
+      - name: Set up Go with cache
+        uses: actions/setup-go@v5
         with:
           go-version: '1.23'
+          cache: true
 
-      - name: Build Go binary
+      - name: Build binary
         working-directory: server
         env:
+          CGO_ENABLED: 0
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
         run: |
-          go mod tidy
-          go build -o ../${{ matrix.output }}
+          go build -trimpath -ldflags="-s -w" -o ../${{ matrix.output }}
 
-      - name: Upload Go binary
+      - name: Upload binary
         uses: actions/upload-artifact@v4
         with:
-          name: backend-${{ matrix.goarch }}  # Уникальное имя для каждой архитектуры
+          name: ${{ matrix.output }}
           path: ${{ matrix.output }}
 
   create_release:
     needs: [build_frontend, build_backend]
     runs-on: ubuntu-latest
     steps:
-      - name: Download frontend artifact
+      - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
-          name: frontend-build
+          pattern: '*'
           path: release-assets
+          merge-multiple: true
 
-      - name: Download backend artifacts
-        uses: actions/download-artifact@v4
-        with:
-          pattern: backend-*
-          path: release-assets
+      - name: List artifacts
+        run: ls -la release-assets
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            release-assets/*
+            release-assets/api-*
+            release-assets/build.tar.gz
