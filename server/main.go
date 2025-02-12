@@ -63,7 +63,7 @@ func main() {
 
 	// Запуск сервера для статики
 	staticMux := http.NewServeMux()
-	staticMux.Handle("/", spaHandler("./build", "index.html"))
+	staticMux.Handle("/", spaHandler("/opt/etc/kvas-wui/build", "index.html"))
 
 	log.Println("Static file server started on :3000")
 	if err := http.ListenAndServe(":3000", staticMux); err != nil {

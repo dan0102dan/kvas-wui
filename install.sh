@@ -9,13 +9,13 @@ print_message() {
     NC="\033[0m"
     
     clean_msg=$(echo -e "$1" | sed -E "s/\\\033\[[0-9;]*m//g")
-    width=$((${#clean_msg} + 6))
-    top=$(printf '╭%.0s─' $(seq 1 $width)) 
-    bottom=$(printf '╰%.0s─' $(seq 1 $width))
+    msg_length=${#clean_msg}
     
-    echo -e "\n${PURPLE}$top╮${NC}"
-    echo -e "${PURPLE}│ ➤  $1${NC}"
-    echo -e "${PURPLE}$bottom╯${NC}"
+    border=$(printf '%0.s─' $(seq 1 $((msg_length + 7))))
+    
+    echo -e "\n${PURPLE}╭${border}╮${NC}"
+    echo -e "${PURPLE}│  ➤  $1  ${PURPLE}│${NC}"
+    echo -e "${PURPLE}╰${border}╯${NC}"
 }
 
 # Обновление пакетов и установка git-http и curl
@@ -55,14 +55,14 @@ curl -L "https://github.com/dan0102dan/kvas-wui/releases/latest/download/$FILE_N
 chmod +x "$BINARY_PATH"
 sleep 1
 
-# Завершение процессов на портах
 print_message "Завершение процессов на портах 5000/3000"
 kill -9 $(netstat -tulpn | grep -E ':5000|:3000' | awk '{print $7}' | cut -d'/' -f1) 2>/dev/null || true
 sleep 1
 
-# Клонирование и обработка build
-git clone --depth 1 --branch gh-pages https://github.com/dan0102dan/kvas-wui.git "$KVAS_DIR/build"
-find "$KVAS_DIR/build" -type f ! -path "/static/*" -exec sed -i'' -e 's|/kvas-wui|./|g' {} +
+print_message "Загрузка файлов веб-интерфейса"
+mkdir -p "$KVAS_DIR/build"
+curl -sSL "https://github.com/dan0102dan/kvas-wui/releases/latest/download/build.tar.gz" | \
+  tar xz -C "$KVAS_DIR/build"
 
 # Настройка автозапуска
 print_message "Настройка автозапуска программы"
@@ -89,5 +89,5 @@ sleep 1
 print_message "Запуск $SERVICE_NAME..."
 "$INIT_SCRIPT" start
 echo "Проверка статуса: $INIT_SCRIPT status"
-echo "Логи: tail -f /var/log/messages | grep $SERVICE_NAME"
+echo "Логи: tail -f /var/log/$SERVICE_NAME.log"
 sleep 1
