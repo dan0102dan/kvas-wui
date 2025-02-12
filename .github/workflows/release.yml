@@ -6,7 +6,40 @@ on:
       - 'v*'
 
 jobs:
-  build:
+  build_frontend:
+    runs-on: ubuntu-latest
+    outputs:
+      frontend_archive: ${{ steps.upload-frontend.outputs.artifact }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        working-directory: client
+        run: npm install
+
+      - name: Build frontend
+        working-directory: client
+        run: npm run build
+
+      - name: Create frontend archive
+        run: tar -czvf build.tar.gz -C client .
+
+      - name: Upload frontend artifact
+        id: upload-frontend
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: build.tar.gz
+
+  build_backend:
+    needs: build_frontend
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -29,47 +62,44 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Сборка фронтенда
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '22'
-          
-      - name: Install frontend dependencies
-        run: npm install
-
-      - name: Build frontend
-        run: npm run build
-
-      # Создание архива для фронтенда
-      - name: Create frontend archive
-        run: |
-          tar -czvf build.tar.gz -C build .
-          mv build.tar.gz release-artifacts
-
-      # Сборка бэкенда
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
           go-version: '1.23'
 
-      - name: Build Go binaries
+      - name: Build Go binary
         working-directory: server
         env:
-          GOOS: linux
+          GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
         run: |
-          echo "Building for GOOS=$GOOS GOARCH=$GOARCH"
           go mod tidy
-          go build -o ../release-artifacts/${{ matrix.output }}
+          go build -o ../${{ matrix.output }}
 
-      - name: Upload artifacts
+      - name: Upload Go binary
         uses: actions/upload-artifact@v4
         with:
-          name: release-package
-          path: release-artifacts/*
+          name: backend-binaries
+          path: ${{ matrix.output }}
+
+  create_release:
+    needs: [build_frontend, build_backend]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download frontend artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-build
+          path: release-assets
+
+      - name: Download backend artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-binaries
+          path: release-assets
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          files: ./release-artifacts/*
+          files: |
+            release-assets/*
