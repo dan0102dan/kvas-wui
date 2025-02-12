@@ -48,7 +48,7 @@ jobs:
       - name: Upload Release Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: release-binaries
+          name: release-binaries-${{ matrix.goarch }}-${{ github.run_id }}
           path: ./build/*
           
       - name: Create Release
