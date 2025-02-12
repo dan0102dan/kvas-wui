@@ -36,11 +36,14 @@ jobs:
           go-version: '1.20'
 
       - name: Set GOOS and GOARCH
+        working-directory: server
+        env:
+          GOOS: linux
+          GOARCH: ${{ matrix.goarch }}
         run: |
-          export GOOS=linux
-          export GOARCH=${{ matrix.goarch }}
           echo "Building for GOOS=$GOOS GOARCH=$GOARCH"
-          go build -o ./build/${{ matrix.output }} ./server
+          go mod tidy
+          go build -o ../build/${{ matrix.output }}
 
       - name: Upload Release Artifacts
         uses: actions/upload-artifact@v4
