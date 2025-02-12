@@ -14,7 +14,7 @@
 
 1. Склонируйте репозиторий:
    ```bash
-   git clone https://github.com/Zeleza-and-Co/kvaspro-server-wui
+   git clone https://github.com/dan0102dan/kvas-wui
    cd kvaspro-server-wui/wui
    ```
 
@@ -45,4 +45,4 @@ npm start
 npm run build
 ```
 
-Собранный проект будет находиться в папке `build` .
+Собранный проект будет находиться в папке `build`.

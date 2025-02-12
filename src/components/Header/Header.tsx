@@ -1,8 +1,6 @@
 import React from 'react'
-import { Group, Burger, Avatar, ActionIcon } from '@mantine/core'
-import { Link } from 'react-router-dom'
-import { IconUserCircle, IconSettings } from '@tabler/icons-react'
-import { useAuth } from '../../contexts'
+import { Group, Burger, ActionIcon } from '@mantine/core'
+import { IconSettings } from '@tabler/icons-react'
 
 interface HeaderProps {
     navbarOpened: boolean
@@ -12,12 +10,6 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ navbarOpened, asideOpened, toggleNavbar, toggleAside }) => {
-    const { user } = useAuth()
-
-    const initials = user?.userId
-        ? user.userId.toString().slice(0, 2)
-        : null
-
     return (
         <Group h="100%" px="md" align="center" justify="space-between">
             <Group>
@@ -30,15 +22,6 @@ const Header: React.FC<HeaderProps> = ({ navbarOpened, asideOpened, toggleNavbar
                     hiddenFrom="sm"
                     size="sm"
                 />
-
-                <Avatar
-                    component={Link}
-                    to="/profile"
-                    color="initials"
-                    radius="xl"
-                >
-                    {user ? initials : <IconUserCircle size={20} />}
-                </Avatar>
             </Group>
 
             <ActionIcon

@@ -38,7 +38,7 @@ const Home: React.FC = () => {
                             <Title ta='center'>
                                 {t('pages.Home.project') + ' '}
                                 <Text component="span" c="blue" inherit>
-                                    «Квас Pro»
+                                    «Квас WUI»
                                 </Text>
                             </Title>
                         </Center>
@@ -58,7 +58,7 @@ const Home: React.FC = () => {
                                 leftSection={<IconBrandTelegram size={20} />}
                                 rightSection={<IconArrowRight size={14} />}
                                 component="a"
-                                href="https://t.me/kvas_pro"
+                                href="https://t.me/+q_2_dYFnm3cyNjUy"
                                 target="_blank"
                                 size='md'
                             >
@@ -71,7 +71,7 @@ const Home: React.FC = () => {
                                 leftSection={<IconBrandGithub size={20} />}
                                 rightSection={<IconArrowRight size={14} />}
                                 component="a"
-                                href="https://github.com/qzeleza/kvas"
+                                href="https://github.com/dan0102dan/kvas-wui"
                                 target="_blank"
                                 size='md'
                             >

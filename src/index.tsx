@@ -7,7 +7,7 @@ import ReactDOM from 'react-dom/client'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import App from './App'
 import { routes } from './routes'
-import { LangProvider, AuthProvider, SecurityProvider } from './contexts'
+import { LangProvider } from './contexts'
 import { MantineProvider } from '@mantine/core'
 import { Notifications } from '@mantine/notifications'
 
@@ -36,11 +36,7 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
     <MantineProvider defaultColorScheme="auto" theme={{ defaultRadius: 'md' }}>
       <Notifications />
       <LangProvider>
-        <AuthProvider>
-          <SecurityProvider>
-            <RouterProvider router={router} />
-          </SecurityProvider>
-        </AuthProvider>
+        <RouterProvider router={router} />
       </LangProvider>
     </MantineProvider>
   </React.StrictMode>,

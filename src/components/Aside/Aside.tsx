@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react'
 import {
     ScrollArea,
     Text,
@@ -6,45 +6,14 @@ import {
     Select,
     useMantineColorScheme,
     MantineColorScheme,
-    Stack,
-    Popover,
-    TextInput,
-    Button,
-    Alert,
-    Group
+    Stack
 } from '@mantine/core'
 import packageJson from '../../../package.json'
-import { useLang, availableTranslations, Lang, useSecurity } from '../../contexts'
-import { IconLock, IconLockOpen, IconAlertCircle } from '@tabler/icons-react'
-import styles from './Aside.module.css'
+import { useLang, availableTranslations, Lang } from '../../contexts'
 
 const AsidePanel: React.FC = () => {
     const { t, setLang, lang } = useLang()
     const { colorScheme, setColorScheme } = useMantineColorScheme()
-    const {
-        hasPassword,
-        isUnlocked,
-        setPassword,
-        removePassword,
-        logout,
-    } = useSecurity()
-
-    const [popoverOpened, setPopoverOpened] = useState(false)
-    const [newPwd, setNewPwd] = useState('')
-    const [confirmDelete, setConfirmDelete] = useState(false)
-
-    const handleSetPassword = () => {
-        if (!newPwd) return
-        setPassword(newPwd)
-        setNewPwd('')
-        setPopoverOpened(false)
-    }
-
-    const handleRemovePassword = () => {
-        removePassword()
-        setConfirmDelete(false)
-        setPopoverOpened(false)
-    }
 
     return (
         <ScrollArea>
@@ -85,145 +54,6 @@ const AsidePanel: React.FC = () => {
                     onChange={(val) => val && setColorScheme(val as MantineColorScheme)}
                     comboboxProps={{ transitionProps: { transition: 'pop', duration: 100 } }}
                 />
-            </Stack>
-
-            <Divider my="md" variant="dashed" />
-
-            <Stack>
-                {hasPassword ? (
-                    <>
-                        <Text size="sm" fw={500} c="dimmed">
-                            {t('settings.security.active')}
-                        </Text>
-
-                        <Popover
-                            opened={popoverOpened}
-                            onChange={setPopoverOpened}
-                            width={250}
-                            position="bottom"
-                        >
-                            <Popover.Target>
-                                <Button
-                                    classNames={{ root: styles.button, label: styles.textWrap, inner: styles.inner }}
-                                    variant="outline"
-                                    color="gray"
-                                    onClick={() => setPopoverOpened((o) => !o)}
-                                >
-                                    {t('settings.security.change')}
-                                </Button>
-                            </Popover.Target>
-                            <Popover.Dropdown>
-                                {confirmDelete ? (
-                                    <Stack gap="sm">
-                                        <Alert icon={<IconAlertCircle size={18} />} color="red">
-                                            {t('settings.security.confirmRemove')}
-                                        </Alert>
-                                        <Group grow>
-                                            <Button
-                                                size="sm"
-                                                variant="default"
-                                                onClick={() => setConfirmDelete(false)}
-                                            >
-                                                {t('common.cancel')}
-                                            </Button>
-                                            <Button
-                                                size="sm"
-                                                color="red"
-                                                onClick={handleRemovePassword}
-                                            >
-                                                {t('common.confirm')}
-                                            </Button>
-                                        </Group>
-                                    </Stack>
-                                ) : (
-                                    <>
-                                        <Text size="sm" mb="xs">
-                                            {t('settings.security.changePassword')}
-                                        </Text>
-                                        <TextInput
-                                            type="password"
-                                            value={newPwd}
-                                            onChange={(e) => setNewPwd(e.target.value)}
-                                            placeholder={t('settings.security.newPassword')}
-                                            mb="xs"
-                                        />
-                                        <Button
-                                            fullWidth
-                                            mb="xs"
-                                            onClick={handleSetPassword}
-                                            disabled={!newPwd}
-                                        >
-                                            {t('settings.security.setNewPassword')}
-                                        </Button>
-                                        <Button
-                                            fullWidth
-                                            color="red"
-                                            variant="outline"
-                                            onClick={() => setConfirmDelete(true)}
-                                        >
-                                            {t('settings.security.removePassword')}
-                                        </Button>
-                                    </>
-                                )}
-                            </Popover.Dropdown>
-                        </Popover>
-
-                        {isUnlocked && (
-                            <Button
-                                classNames={{ root: styles.button, label: styles.textWrap, inner: styles.inner }}
-                                variant="light"
-                                color="red"
-                                onClick={logout}
-                                leftSection={<IconLock size={18} />}
-                            >
-                                {t('settings.security.logout')}
-                            </Button>
-                        )}
-                    </>
-                ) : (
-                    <>
-                        <Text size="sm" c="dimmed">
-                            {t('settings.security.inactive')}
-                        </Text>
-                        <Popover
-                            opened={popoverOpened}
-                            onChange={setPopoverOpened}
-                            width={300}
-                            position="bottom"
-                        >
-                            <Popover.Target>
-                                <Button
-                                    classNames={{ root: styles.button, label: styles.textWrap, inner: styles.inner }}
-                                    variant="light"
-                                    color="blue"
-                                    leftSection={<IconLockOpen size={18} />}
-                                    onClick={() => setPopoverOpened((o) => !o)}
-                                >
-                                    {t('settings.security.setPassword')}
-                                </Button>
-                            </Popover.Target>
-                            <Popover.Dropdown>
-                                <Text size="sm" mb="xs">
-                                    {t('settings.security.newPassword')}
-                                </Text>
-                                <TextInput
-                                    type="password"
-                                    value={newPwd}
-                                    onChange={(e) => setNewPwd(e.target.value)}
-                                    placeholder={t('settings.security.newPasswordPlaceholder')}
-                                    mb="xs"
-                                />
-                                <Button
-                                    fullWidth
-                                    onClick={handleSetPassword}
-                                    disabled={!newPwd}
-                                >
-                                    {t('settings.security.save')}
-                                </Button>
-                            </Popover.Dropdown>
-                        </Popover>
-                    </>
-                )}
             </Stack>
         </ScrollArea>
     )

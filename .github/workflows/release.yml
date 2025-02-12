@@ -1,0 +1,54 @@
+name: Build Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        goarch:
+          - mipsle
+          - mips
+          - arm64
+        include:
+          - goarch: mipsle
+            goos: linux
+            output: api-mipsel
+          - goarch: mips
+            goos: linux
+            output: api-mips
+          - goarch: arm64
+            goos: linux
+            output: api-arm64
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: '1.20'
+
+      - name: Set GOOS and GOARCH
+        run: |
+          export GOOS=linux
+          export GOARCH=${{ matrix.goarch }}
+          echo "Building for GOOS=$GOOS GOARCH=$GOARCH"
+          go build -o ./build/${{ matrix.output }} ./server
+
+      - name: Upload Release Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: release-binaries
+          path: ./build/*
+          
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ./build/*

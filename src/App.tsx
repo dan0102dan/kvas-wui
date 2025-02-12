@@ -3,17 +3,13 @@ import { AppShell, ScrollArea } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 
 import { Header, Navbar, Aside } from './components'
-import { useAuth } from './contexts'
 
 function App() {
   const [navbarOpened, { toggle: toggleNavbar }] = useDisclosure(false)
   const [asideOpened, { toggle: toggleAside }] = useDisclosure(false)
 
-  const { user } = useAuth()
-
   return (
     <AppShell
-      disabled={!user}
       header={{ height: { base: 60 } }}
       navbar={{
         width: { base: 220 },
