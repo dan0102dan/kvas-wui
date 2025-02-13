@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"github.com/dan0102dan/kvas-wui/handlers"
 )
 
 // CORS middleware для обработки кросс-доменных запросов
@@ -50,8 +51,7 @@ func main() {
 	// Запуск API сервера на порту 5000
 	apiMux := http.NewServeMux()
 
-	apiMux.HandleFunc("/command", commandHandler)
-	apiMux.HandleFunc("/tunnel", tunnelHandler)
+	apiMux.HandleFunc("/tunnel", handlers.TunnelHandler)
 
 	// Запуск API сервера
 	go func() {

@@ -1,16 +1,9 @@
-package main
+package handlers
 
 import (
-	"encoding/json"
 	"net/http"
 	"os/exec"
 )
-
-func respondJSON(w http.ResponseWriter, code int, data interface{}) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(code)
-	_ = json.NewEncoder(w).Encode(data)
-}
 
 func commandHandler(w http.ResponseWriter, r *http.Request) {
 	cmdStr := r.URL.Query().Get("command")

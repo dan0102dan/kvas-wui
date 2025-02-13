@@ -1,6 +1,5 @@
-import { IconHome2, IconSettings, IconPhone } from '@tabler/icons-react'
+import { IconHome2, IconSettings } from '@tabler/icons-react'
 import Home from './pages/Home'
-import Contacts from './pages/Contacts'
 import Tunnel from './pages/Tunnel'
 import NotFound from './pages/NotFound'
 
@@ -35,12 +34,6 @@ export const routes: Route[] = [
         label: 'Home',
         icon: IconHome2,
         element: <Home />,
-    },
-    {
-        path: 'contacts',
-        label: 'Contacts',
-        icon: IconPhone,
-        element: <Contacts />,
     },
     {
         path: 'setup',

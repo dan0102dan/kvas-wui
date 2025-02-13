@@ -7,15 +7,8 @@ export const apiClient = axios.create({
     withCredentials: false
 })
 
-interface Network {
-    name: string
-    ip: string
-    interface: string
-    description: string
-}
-
 export interface TunnelResponse {
-    'internet-gateway': {
+    internet_gateway: {
         provider: string
         interface: string
         ip: string
@@ -26,10 +19,29 @@ export interface TunnelResponse {
         name: string
         connection: boolean
         ip: string
-        domain: string
+        config: {
+            server: string
+            server_port: number
+            local_port: number
+            method: string
+        }
     }
-    aviable_networks: Network[]
+    available_networks: Array<{
+        name: string
+        ip?: string
+        interface: string
+        description?: string
+        type?: string
+    }>
+    scanned_networks: Array<{
+        name: string
+        ip?: string
+        interface: string
+        description?: string
+        type?: string
+    }>
 }
+
 export const getConnections = async (): Promise<TunnelResponse> => {
     return (await apiClient.get('/tunnel')).data
 }
