@@ -56,5 +56,3 @@ jobs:
             git tag "v$VERSION"
             git push origin "v$VERSION"
           fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

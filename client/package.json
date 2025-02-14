@@ -1,7 +1,7 @@
 {
   "name": "kvas-wui",
   "author": "dan0102dan",
-  "version": "1.0.3",
+  "version": "1.0.5",
   "homepage": "./",
   "dependencies": {
     "@mantine/carousel": "^7.16.0",

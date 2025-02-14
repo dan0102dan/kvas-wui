@@ -7,7 +7,7 @@ export const apiClient = axios.create({
     withCredentials: false
 })
 
-export interface TunnelResponse {
+export const getConnections = async (): Promise<{
     internet_gateway: {
         provider: string
         interface: string
@@ -40,8 +40,10 @@ export interface TunnelResponse {
         description?: string
         type?: string
     }>
+}> => {
+    return (await apiClient.get('/tunnel')).data
 }
 
-export const getConnections = async (): Promise<TunnelResponse> => {
-    return (await apiClient.get('/tunnel')).data
+export const update = async (): Promise<void> => {
+    await apiClient.get('/update')
 }

@@ -44,7 +44,18 @@ esac
 echo "Определена архитектура: $ARCHITECTURE"
 sleep 1
 
-# Создание целевой директории и перенос файлов
+print_message "Завершение процессов на портах 3000/5000" 
+INIT_SCRIPT="/opt/etc/init.d/S99$SERVICE_NAME"
+if [ -x "$INIT_SCRIPT" ]; then
+    "$INIT_SCRIPT" stop || true
+    sleep 1
+fi
+pids=$(netstat -tulpn | grep -E ':3000|:5000' | awk '{print $7}' | cut -d'/' -f1)
+if [ -n "$pids" ]; then
+    kill -9 $pids 2>/dev/null
+fi
+sleep 1
+
 print_message "Создание $KVAS_DIR"
 rm -rf "$KVAS_DIR"; mkdir "$KVAS_DIR"
 
@@ -53,10 +64,6 @@ BINARY_PATH="$KVAS_DIR/$FILE_NAME"
 print_message "Загрузка бинарного файла Go-сервера для $ARCHITECTURE"
 curl -L "https://github.com/dan0102dan/kvas-wui/releases/latest/download/$FILE_NAME" -o "$BINARY_PATH"
 chmod +x "$BINARY_PATH"
-sleep 1
-
-print_message "Завершение процессов на портах 5000/3000"
-kill -9 $(netstat -tulpn | grep -E ':5000|:3000' | awk '{print $7}' | cut -d'/' -f1) 2>/dev/null || true
 sleep 1
 
 print_message "Загрузка файлов веб-интерфейса"
@@ -68,8 +75,6 @@ curl -sSL "https://github.com/dan0102dan/kvas-wui/releases/latest/download/build
 print_message "Настройка автозапуска программы"
 
 # Конфигурация сервиса
-INIT_SCRIPT="/opt/etc/init.d/S99$SERVICE_NAME"
-
 cat << EOF > "$INIT_SCRIPT"
 #!/bin/sh
 

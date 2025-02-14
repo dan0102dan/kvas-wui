@@ -52,6 +52,7 @@ func main() {
 	apiMux := http.NewServeMux()
 
 	apiMux.HandleFunc("/tunnel", handlers.TunnelHandler)
+	apiMux.HandleFunc("/update", handlers.UpdateHandler)
 
 	// Запуск API сервера
 	go func() {

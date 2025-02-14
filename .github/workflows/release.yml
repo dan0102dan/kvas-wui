@@ -1,9 +1,10 @@
 name: Build Release
 
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_run:
+    workflows: ["Build and Deploy"]
+    types:
+      - completed
 
 jobs:
   build_frontend:
@@ -58,6 +59,7 @@ jobs:
 
       - name: Set up Go
         uses: actions/setup-go@v5
+        working-directory: server
         with:
           go-version: '1.23'
 
@@ -77,22 +79,39 @@ jobs:
           path: ${{ matrix.output }}
 
   create_release:
-    needs: [build_frontend, build_backend]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          pattern: '*'
-          path: release-assets
-          merge-multiple: true
+  needs: [build_frontend, build_backend]
+  runs-on: ubuntu-latest
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.workflow_run.head_sha }}
+        fetch-depth: 0
+        fetch-tags: true
 
-      - name: List artifacts
-        run: ls -la release-assets
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: release-assets
+        merge-multiple: true
 
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            release-assets/api-*
-            release-assets/build.tar.gz
+    - name: Fetch all tags
+      run: git fetch --tags --force
+
+    - name: Check tag
+      id: tag_check
+      run: |
+        TAG=$(git tag --points-at ${{ github.event.workflow_run.head_sha }})
+        if [ -z "$TAG" ]; then
+          echo "tag_exists=false" >> $GITHUB_OUTPUT
+        else
+          echo "tag_exists=true" >> $GITHUB_OUTPUT
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Create Release
+      if: steps.tag_check.outputs.tag_exists == 'true'
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ steps.tag_check.outputs.tag }}
+        files: release-assets/*

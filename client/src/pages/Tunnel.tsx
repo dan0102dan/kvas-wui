@@ -21,10 +21,10 @@ import {
     IconNetwork,
     IconWorld
 } from '@tabler/icons-react'
-import { getConnections, type TunnelResponse } from '../api/routerApi'
+import { getConnections } from '../api/routerApi'
 
 const TunnelPage: React.FC = () => {
-    const [tunnelData, setTunnelData] = useState<TunnelResponse | null>(null)
+    const [tunnelData, setTunnelData] = useState<Awaited<ReturnType<typeof getConnections>> | null>(null)
     const [loading, setLoading] = useState<boolean>(true)
 
     useEffect(() => {
@@ -218,7 +218,7 @@ const TunnelPage: React.FC = () => {
     )
 
     return (
-        <Container size="lg" py="xl">
+        <Container py="xl">
             <Title order={1} mb="xl">
                 Информация о подключениях
             </Title>
@@ -234,14 +234,16 @@ const TunnelPage: React.FC = () => {
                         {renderTunnelCard()}
                     </Grid.Col>
 
-                    <Grid.Col span={12}>
-                        <Title order={4} mt="xl" mb="md">
-                            Доступные сети
-                        </Title>
-                        <SimpleGrid cols={3} spacing="lg">
-                            {tunnelData?.available_networks.map(renderNetworkCard)}
-                        </SimpleGrid>
-                    </Grid.Col>
+                    {tunnelData?.available_networks && tunnelData.available_networks.length > 0 && (
+                        <Grid.Col span={12}>
+                            <Title order={4} mt="xl" mb="md">
+                                Доступные сети
+                            </Title>
+                            <SimpleGrid cols={3} spacing="lg">
+                                {tunnelData?.available_networks.map(renderNetworkCard)}
+                            </SimpleGrid>
+                        </Grid.Col>
+                    )}
 
                     {tunnelData?.scanned_networks && tunnelData.scanned_networks.length > 0 && (
                         <Grid.Col span={12}>

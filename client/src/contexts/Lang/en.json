@@ -10,6 +10,13 @@
             "light": "Light",
             "dark": "Dark",
             "auto": "Auto"
+        },
+        "update": {
+            "available": "Update available",
+            "install": "Install",
+            "started": "Update started",
+            "warning": "Page will automatically reload in a minute",
+            "error": "Error occurred while starting update"
         }
     },
     "notifications": {
