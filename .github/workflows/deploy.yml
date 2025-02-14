@@ -1,4 +1,4 @@
-name: Build and Deploy
+name: Deploy
 
 on:
   push:
@@ -8,51 +8,35 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    
+    defaults:
+      run:
+        working-directory: ./client
+
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-          fetch-tags: true
+        uses: actions/checkout@v4
 
-      - name: Modify BrowserRouter to HashRouter and change homepage
-        working-directory: "client"
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: './client/package-lock.json'
+
+      - name: Modify configuration
         run: |
           sed -i 's/BrowserRouter/HashRouter/' src/index.tsx
           sed -i 's|"homepage": ".*"|"homepage": "https://dan0102dan.github.io/kvas-wui"|' package.json
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '22'
-
       - name: Install dependencies
-        working-directory: "client"
-        run: npm install
+        run: npm ci
 
-      - name: Build and deploy
-        working-directory: "client"
-        run: |
-          npm run build
-          git config --global user.email "actions@github.com"
-          git config --global user.name "GitHub Action"
-          git checkout --orphan gh-pages
-          git --work-tree build add --all
-          git --work-tree build commit -m "GitHub Pages deployment"
-          git push origin HEAD:gh-pages --force
-          
-      - name: Check version and create tag if needed
-        working-directory: "client"
-        run: |
-          git fetch --tags
-          VERSION=$(jq -r '.version' package.json)
-          echo "Current version: $VERSION"
+      - name: Build project
+        run: npm run build
 
-          if git rev-parse "v$VERSION" >/dev/null 2>&1; then
-            echo "Tag v$VERSION already exists. Skipping tag creation."
-          else
-            echo "Tag v$VERSION not found. Creating tag."
-            git tag "v$VERSION"
-            git push origin "v$VERSION"
-          fi
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./build
+          keep_files: false
