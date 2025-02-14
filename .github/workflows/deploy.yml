@@ -12,6 +12,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          fetch-tags: true
 
       - name: Modify BrowserRouter to HashRouter and change homepage
         working-directory: "client"
@@ -38,3 +41,20 @@ jobs:
           git --work-tree build add --all
           git --work-tree build commit -m "GitHub Pages deployment"
           git push origin HEAD:gh-pages --force
+          
+      - name: Check version and create tag if needed
+        working-directory: "client"
+        run: |
+          git fetch --tags
+          VERSION=$(jq -r '.version' package.json)
+          echo "Current version: $VERSION"
+
+          if git rev-parse "v$VERSION" >/dev/null 2>&1; then
+            echo "Tag v$VERSION already exists. Skipping tag creation."
+          else
+            echo "Tag v$VERSION not found. Creating tag."
+            git tag "v$VERSION"
+            git push origin "v$VERSION"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
