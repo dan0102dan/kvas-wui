@@ -22,7 +22,7 @@ import {
 import { NetworkBackground } from '../components'
 import { useLang } from '../contexts'
 
-const Home: React.FC = () => {
+const About: React.FC = () => {
     const { t } = useLang()
 
     return (
@@ -36,7 +36,7 @@ const Home: React.FC = () => {
                     <Container size="sm" py="xl" px="md">
                         <Center mb="md">
                             <Title ta='center'>
-                                {t('pages.Home.project') + ' '}
+                                {t('pages.About.project') + ' '}
                                 <Text component="span" c="blue" inherit>
                                     «Квас WUI»
                                 </Text>
@@ -46,7 +46,7 @@ const Home: React.FC = () => {
                         <Center mb="xl">
                             <Container size={600} p={0}>
                                 <Text size="lg" c="dimmed">
-                                    {t('pages.Home.description')}
+                                    {t('pages.About.description')}
                                 </Text>
                             </Container>
                         </Center>
@@ -62,7 +62,7 @@ const Home: React.FC = () => {
                                 target="_blank"
                                 size='md'
                             >
-                                {t('pages.Home.tgChat')}
+                                {t('pages.About.tgChat')}
                             </Button>
 
                             <Button
@@ -75,7 +75,7 @@ const Home: React.FC = () => {
                                 target="_blank"
                                 size='md'
                             >
-                                {t('pages.Home.githubRepo')}
+                                {t('pages.About.githubRepo')}
                             </Button>
                         </Flex>
                     </Container>
@@ -83,18 +83,18 @@ const Home: React.FC = () => {
 
                 <Group justify="center" py="md">
                     <Badge variant="filled" size="lg">
-                        {t('pages.Home.slogan')}
+                        {t('pages.About.slogan')}
                     </Badge>
                 </Group>
             </Flex>
 
             <Container size="lg" pb="xl">
                 <Title order={2} ta="center" mt="sm">
-                    {t('pages.Home.whyUs')}
+                    {t('pages.About.whyUs')}
                 </Title>
 
                 <Text c="dimmed" ta="center" mt="md">
-                    {t('pages.Home.whyUsDescription')}
+                    {t('pages.About.whyUsDescription')}
                 </Text>
 
                 <SimpleGrid cols={{ base: 1, md: 3 }} spacing="xl" mt={50}>
@@ -145,4 +145,4 @@ const Home: React.FC = () => {
     )
 }
 
-export default Home
+export default About

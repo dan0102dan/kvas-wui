@@ -1,6 +1,7 @@
-import { IconHome2, IconSettings } from '@tabler/icons-react'
-import Home from './pages/Home'
+import { IconInfoSquareRounded, IconSettings, IconError404 } from '@tabler/icons-react'
+import About from './pages/About'
 import Tunnel from './pages/Tunnel'
+import SecureList from './pages/SecureList'
 import NotFound from './pages/NotFound'
 
 /**
@@ -29,11 +30,10 @@ export interface Route {
  */
 export const routes: Route[] = [
     {
-        index: true,
-        path: '/',
-        label: 'Home',
-        icon: IconHome2,
-        element: <Home />,
+        path: 'secureList',
+        label: 'SecureList',
+        icon: IconSettings,
+        element: <SecureList />,
     },
     {
         path: 'setup',
@@ -44,8 +44,14 @@ export const routes: Route[] = [
     {
         path: '*',
         label: 'NotFound',
-        icon: IconHome2,
+        icon: IconError404,
         element: <NotFound />,
         hidden: true,
     },
+    {
+        path: '/about',
+        label: 'About',
+        icon: IconInfoSquareRounded,
+        element: <About />,
+    }
 ]

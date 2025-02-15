@@ -44,6 +44,19 @@ export const getConnections = async (): Promise<{
     return (await apiClient.get('/tunnel')).data
 }
 
-export const update = async (): Promise<void> => {
+export const update = async (): Promise<void> => (
     await apiClient.get('/update')
-}
+)
+
+export const getSecureList = async (): Promise<string[]> => (
+    (await apiClient.get('/list')).data
+)
+export const addDomain = async (domain: string): Promise<{ domain: string }> => (
+    (await apiClient.get('/add', { params: { domain } })).data
+)
+export const deleteDomain = async (domain: string): Promise<{ domain: string }> => (
+    (await apiClient.get('/del', { params: { domain } })).data
+)
+export const clearForce = async (): Promise<{ message: string; backup?: string }> => (
+    (await apiClient.get('/clear')).data
+)

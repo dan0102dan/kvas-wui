@@ -53,6 +53,10 @@ func main() {
 
 	apiMux.HandleFunc("/tunnel", handlers.TunnelHandler)
 	apiMux.HandleFunc("/update", handlers.UpdateHandler)
+	apiMux.HandleFunc("/list", handlers.ListHandler)
+	apiMux.HandleFunc("/add", handlers.AddHandler)
+	apiMux.HandleFunc("/del", handlers.DelHandler)
+	apiMux.HandleFunc("/clear", handlers.ClearForceHandler)
 
 	// Запуск API сервера
 	go func() {
