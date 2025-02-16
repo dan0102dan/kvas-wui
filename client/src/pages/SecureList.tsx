@@ -17,6 +17,7 @@ import {
     Affix,
     Transition,
     UnstyledButton,
+    Alert,
 } from '@mantine/core'
 import {
     IconTrash,
@@ -24,6 +25,7 @@ import {
     IconChevronUp,
     IconChevronDown,
     IconSelector,
+    IconInfoCircle
 } from '@tabler/icons-react'
 import {
     getSecureList,
@@ -31,32 +33,27 @@ import {
     deleteDomain,
     clearForce,
 } from '../api/routerApi'
+import { ALL_SERVICES } from '../utils'
 
-// Функция для определения сервиса по домену (пример)
-const getServiceForDomain = (domain: string): string => {
-    const mapping: Record<string, string> = {
-        'google.com': 'Google',
-        'facebook.com': 'Facebook',
-        'twitter.com': 'Twitter',
-        'github.com': 'GitHub',
-        'amazon.com': 'Amazon',
-        'yahoo.com': 'Yahoo',
-        'example.com': 'Example Service',
-    }
-    for (const key in mapping) {
-        if (domain.toLowerCase().includes(key)) {
-            return mapping[key]
-        }
-    }
-    return 'Неизвестно'
-}
-
+// Интерфейс для домена
 interface DomainItem {
     id: string
     domain: string
     processing?: boolean
 }
 
+// Функция для определения сервиса по домену
+const getServiceForDomain = (domain: string): string => {
+    const lowerDomain = domain.toLowerCase()
+    for (const service of ALL_SERVICES) {
+        if (service.domainPatterns.some((pattern) => lowerDomain.endsWith(pattern))) {
+            return service.name
+        }
+    }
+    return 'Неизвестно'
+}
+
+// Компонент строки таблицы доменов
 interface DomainRowProps {
     item: DomainItem
     isSelected: boolean
@@ -68,7 +65,7 @@ const DomainRow: React.FC<DomainRowProps> = React.memo(
     ({ item, isSelected, onToggle, onDelete }) => {
         return (
             <Table.Tr bg={isSelected ? 'var(--mantine-color-blue-light)' : undefined}>
-                <Table.Td style={{ width: 40 }}>
+                <Table.Td>
                     <Checkbox
                         aria-label="Выбрать домен"
                         checked={isSelected}
@@ -84,7 +81,7 @@ const DomainRow: React.FC<DomainRowProps> = React.memo(
                         {getServiceForDomain(item.domain)}
                     </Text>
                 </Table.Td>
-                <Table.Td style={{ width: 40, textAlign: 'center' }}>
+                <Table.Td align='right'>
                     <Tooltip label="Удалить домен" withArrow position="top">
                         <ActionIcon
                             color="red"
@@ -101,6 +98,7 @@ const DomainRow: React.FC<DomainRowProps> = React.memo(
     }
 )
 
+// Компонент заголовка таблицы с сортировкой
 interface ThProps {
     children: React.ReactNode
     sorted: boolean
@@ -113,7 +111,7 @@ const Th: React.FC<ThProps> = ({ children, sorted, reversed, onSort }) => {
     return (
         <Table.Th>
             <UnstyledButton onClick={onSort}>
-                <Group gap='sm' grow>
+                <Group gap="sm" grow>
                     <Text fw={500} fz="sm">
                         {children}
                     </Text>
@@ -133,10 +131,12 @@ const SecureList: React.FC = () => {
     const [loading, setLoading] = useState(true)
     const [errorMessage, setErrorMessage] = useState('')
 
-    // Состояния для сортировки: sortBy может быть 'domain' или 'service' или null (нет сортировки)
-    // sortOrder: 'asc' или 'desc' или null
+    // Состояния сортировки
     const [sortBy, setSortBy] = useState<'domain' | 'service' | null>(null)
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc' | null>(null)
+
+    // Состояние фильтрации по сервису (имена сервисов)
+    const [selectedServiceFilters, setSelectedServiceFilters] = useState<string[]>([])
 
     useEffect(() => {
         getSecureList()
@@ -248,10 +248,7 @@ const SecureList: React.FC = () => {
         [domains, sortBy, sortOrder]
     )
 
-    // Функция для трёхсостоящей сортировки:
-    // Если выбран столбец не совпадает с текущим — сортировка по возрастанию,
-    // если уже 'asc' — меняем на 'desc',
-    // если уже 'desc' — сбрасываем сортировку.
+    // Обработчик сортировки по столбцу
     const handleSort = useCallback(
         (column: 'domain' | 'service') => {
             if (sortBy !== column) {
@@ -267,6 +264,7 @@ const SecureList: React.FC = () => {
         [sortBy, sortOrder]
     )
 
+    // Сортировка доменов
     const sortedDomains = useMemo(() => {
         if (!sortBy) return domains
         const sorted = [...domains].sort((a, b) => {
@@ -283,6 +281,31 @@ const SecureList: React.FC = () => {
         })
         return sorted
     }, [domains, sortBy, sortOrder])
+
+    // Фильтрация доменов по выбранным сервисам
+    const filteredDomains = useMemo(() => {
+        if (selectedServiceFilters.length === 0) return sortedDomains
+        return sortedDomains.filter((item) =>
+            selectedServiceFilters.includes(getServiceForDomain(item.domain))
+        )
+    }, [sortedDomains, selectedServiceFilters])
+
+    // Вычисляем рекомендуемые домены, которых ещё нет в списке для выбранных сервисов
+    const missingRecommendedDomains = useMemo(() => {
+        if (selectedServiceFilters.length === 0) return []
+        const missing: string[] = []
+        selectedServiceFilters.forEach((serviceName) => {
+            const serviceData = ALL_SERVICES.find((s) => s.name === serviceName)
+            if (serviceData) {
+                serviceData.domainPatterns.forEach((pattern) => {
+                    if (!domains.some((d) => d.domain.toLowerCase() === pattern.toLowerCase())) {
+                        missing.push(pattern)
+                    }
+                })
+            }
+        })
+        return Array.from(new Set(missing))
+    }, [selectedServiceFilters, domains])
 
     const toggleSelectAll = useCallback(() => {
         if (selectedRows.length === domains.length) {
@@ -351,7 +374,7 @@ const SecureList: React.FC = () => {
     }, [])
 
     const rows = useMemo(() => {
-        return sortedDomains.map((item) => (
+        return filteredDomains.map((item) => (
             <DomainRow
                 key={item.id}
                 item={item}
@@ -360,11 +383,46 @@ const SecureList: React.FC = () => {
                 onDelete={handleDeleteDomain}
             />
         ))
-    }, [sortedDomains, selectedRows, handleToggleRowSelection, handleDeleteDomain])
+    }, [filteredDomains, selectedRows, handleToggleRowSelection, handleDeleteDomain])
+
+    // Обработчик клика по кнопке сервиса (фильтрация)
+    const handleToggleService = useCallback((serviceName: string) => {
+        setSelectedServiceFilters((prev) =>
+            prev.includes(serviceName)
+                ? prev.filter((s) => s !== serviceName)
+                : [...prev, serviceName]
+        )
+    }, [])
+
+    // Обработчик для добавления всех недостающих рекомендуемых доменов
+    const handleAddMissingRecommendedDomains = useCallback(() => {
+        if (missingRecommendedDomains.length > 0) {
+            addDomains(missingRecommendedDomains.join('\n'))
+        }
+    }, [missingRecommendedDomains, addDomains])
 
     return (
         <Container py="xl">
             <Title mb="md">Список доменов</Title>
+
+            {/* Панель фильтрации по сервису */}
+            <Group mb="md">
+                {ALL_SERVICES.map((service) => {
+                    const IconComp = service.icon
+                    const isActive = selectedServiceFilters.includes(service.name)
+                    return (
+                        <Button
+                            key={service.name}
+                            variant={isActive ? 'filled' : 'outline'}
+                            color={isActive ? 'blue' : 'gray'}
+                            leftSection={IconComp ? <IconComp size={16} /> : null}
+                            onClick={() => handleToggleService(service.name)}
+                        >
+                            {service.name}
+                        </Button>
+                    )
+                })}
+            </Group>
 
             <Group mb="md">
                 <TextInput
@@ -378,39 +436,66 @@ const SecureList: React.FC = () => {
                             addDomains(pastedText)
                         }
                     }}
-                    style={{ flex: 1 }}
+                    flex={1}
                     error={errorMessage || undefined}
                 />
                 <Button leftSection={<IconPlus size={16} />} onClick={() => addDomains(inputValue)}>
-                    Добавить
+                    {missingRecommendedDomains.length > 0 && inputValue.trim() === '' ? 'Дополнить рекомендуемыми' : 'Добавить'}
                 </Button>
             </Group>
+
+            {/* Если список доменов (после фильтрации) НЕ пуст, но отсутствуют рекомендуемые домены – показываем уведомление */}
+            {filteredDomains.length > 0 && missingRecommendedDomains.length > 0 && (
+                <Alert
+                    icon={<IconInfoCircle size={16} />}
+                    title="Дополните список"
+                    color="blue"
+                    mb="sm"
+                >
+                    В вашем списке отсутствуют рекомендуемые домены: {missingRecommendedDomains.join(', ')}.
+                </Alert>
+            )}
 
             {loading ? (
                 <Center>
                     <Stack align="center">
-                        <Loader
-                            size="xl"
-                            type="dots"
-                            color="blue"
-                        />
+                        <Loader size="xl" type="dots" color="blue" />
                         <Text size="xl">Загрузка доменов...</Text>
-                        <Text size="sm" c="dimmed">Пожалуйста, подождите, мы получаем данные.</Text>
+                        <Text size="sm" c="dimmed">
+                            Пожалуйста, подождите, мы получаем данные.
+                        </Text>
                     </Stack>
                 </Center>
             ) : domains.length === 0 ? (
                 <Center>
                     <Stack align="center">
                         <Text size="xl">Пусто</Text>
-                        <Text size="sm" c="dimmed">Добавьте новые домены, чтобы они появились здесь.</Text>
+                        <Text size="sm" c="dimmed">
+                            Добавьте новые домены, чтобы они появились здесь.
+                        </Text>
+                    </Stack>
+                </Center>
+            ) : filteredDomains.length === 0 ? (
+                <Center>
+                    <Stack align="center">
+                        <Text size="xl">Нет доменов для выбранного фильтра</Text>
+                        {selectedServiceFilters.length > 0 && missingRecommendedDomains.length > 0 ? (
+                            <Button leftSection={<IconPlus size={16} />} onClick={handleAddMissingRecommendedDomains}>
+                                Добавить рекомендуемые домены
+                            </Button>
+                        ) : (
+                            <Text size="sm" c="dimmed">
+                                Попробуйте изменить фильтр или добавить домены вручную.
+                            </Text>
+                        )}
                     </Stack>
                 </Center>
             ) : (
                 <ScrollArea>
-                    <Table highlightOnHover striped withColumnBorders>
+                    <Table highlightOnHover striped>
                         <Table.Thead>
                             <Table.Tr>
-                                <Table.Th style={{ width: 40 }}>
+                                <Table.Th>
                                     <Checkbox
                                         aria-label="Выбрать все"
                                         checked={selectedRows.length === domains.length && domains.length > 0}
@@ -434,7 +519,7 @@ const SecureList: React.FC = () => {
                                 >
                                     Сервис
                                 </Th>
-                                <Table.Th style={{ width: 40 }} />
+                                <Table.Th />
                             </Table.Tr>
                         </Table.Thead>
                         <Table.Tbody>{rows}</Table.Tbody>
@@ -442,10 +527,20 @@ const SecureList: React.FC = () => {
                 </ScrollArea>
             )}
 
-            <Transition mounted={selectedRows.length > 0} transition="slide-up" duration={200} timingFunction="ease">
+            <Transition
+                mounted={selectedRows.length > 0}
+                transition="slide-up"
+                duration={200}
+                timingFunction="ease"
+            >
                 {(styles) => (
                     <Affix position={{ bottom: 20, right: 20 }}>
-                        <Button style={styles} color="red" leftSection={<IconTrash size={16} />} onClick={deleteSelectedRows}>
+                        <Button
+                            style={styles}
+                            color="red"
+                            leftSection={<IconTrash size={16} />}
+                            onClick={deleteSelectedRows}
+                        >
                             Удалить выбранное
                         </Button>
                     </Affix>
