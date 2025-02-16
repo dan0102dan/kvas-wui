@@ -12,7 +12,7 @@ func CleanString(text string) string {
     return strings.TrimSpace(text)
 }
 
-// executeCommand выполняет команду и возвращает очищенный вывод
+// выполняет команду и возвращает очищенный вывод
 func ExecuteCommand(cmd string) (string, error) {
     output, err := exec.Command("sh", "-c", cmd).CombinedOutput()
     return CleanString(string(output)), err

@@ -18,13 +18,21 @@ print_message() {
     echo -e "${PURPLE}╰${border}╯${NC}"
 }
 
-# Обновление пакетов и установка git-http и curl
-print_message "Обновление пакетов, пожалуйста подождите"
-opkg update
-opkg install git-http curl
+print_message "Обновление списка пакетов. Пожалуйста, подождите..."
+if opkg update; then
+    echo "Обновление пакетов завершено успешно."
+else
+    echo "Ошибка: не удалось обновить пакеты!" && exit 1
+fi
 
-# Определение архитектуры системы
-print_message "Определение архитектуры системы"
+print_message "Установка необходимых утилит: git-http и curl"
+if opkg install git-http curl; then
+    echo "Установка git-http и curl завершена успешно."
+else
+    echo "Ошибка: не удалось установить git-http и/или curl!" && exit 1
+fi
+
+print_message "Определение архитектуры системы..."
 ARCHITECTURE=$(opkg print-architecture | tail -n 1 | cut -d ' ' -f 2 | cut -d '-' -f 1)
 case "$ARCHITECTURE" in
     aarch64)
@@ -37,44 +45,71 @@ case "$ARCHITECTURE" in
         FILE_NAME="api-mips"
         ;;
     *)
-        echo "Unsupported architecture: $ARCHITECTURE"
-        exit 1
+        echo "Ошибка: Unsupported architecture: $ARCHITECTURE" && exit 1
         ;;
 esac
 echo "Определена архитектура: $ARCHITECTURE"
+echo "Будет использован бинарный файл: $FILE_NAME"
 sleep 1
 
-print_message "Завершение процессов на портах 3000/5000" 
+print_message "Завершение процессов, занимающих порты 3000/5000"
 INIT_SCRIPT="/opt/etc/init.d/S99$SERVICE_NAME"
 if [ -x "$INIT_SCRIPT" ]; then
+    echo "Останавливаем ранее запущенный сервис $SERVICE_NAME..."
     "$INIT_SCRIPT" stop || true
     sleep 1
 fi
+
 pids=$(netstat -tulpn | grep -E ':3000|:5000' | awk '{print $7}' | cut -d'/' -f1)
 if [ -n "$pids" ]; then
-    kill -9 $pids 2>/dev/null
+    echo "Обнаружены процессы на портах 3000/5000. PID(ы): $pids"
+    if kill -9 $pids 2>/dev/null; then
+        echo "Процессы успешно завершены."
+    else
+        echo "Не удалось завершить некоторые процессы."
+    fi
+else
+    echo "Активных процессов на портах 3000/5000 не обнаружено."
 fi
 sleep 1
 
-print_message "Создание $KVAS_DIR"
-rm -rf "$KVAS_DIR"; mkdir "$KVAS_DIR"
+print_message "Подготовка каталога установки: $KVAS_DIR"
+if [ -d "$KVAS_DIR" ]; then
+    echo "Обнаружена предыдущая установка. Удаляем каталог $KVAS_DIR..."
+    rm -rf "$KVAS_DIR"
+fi
 
-# Загрузка бинарного файла Go-сервера
+if mkdir "$KVAS_DIR"; then
+    echo "Каталог $KVAS_DIR успешно создан."
+else
+    echo "Ошибка: не удалось создать каталог $KVAS_DIR!" && exit 1
+fi
+
 BINARY_PATH="$KVAS_DIR/$FILE_NAME"
-print_message "Загрузка бинарного файла Go-сервера для $ARCHITECTURE"
-curl -L "https://github.com/dan0102dan/kvas-wui/releases/latest/download/$FILE_NAME" -o "$BINARY_PATH"
-chmod +x "$BINARY_PATH"
+print_message "Скачивание бинарного файла Go-сервера для архитектуры $ARCHITECTURE"
+if curl -L "https://github.com/dan0102dan/kvas-wui/releases/latest/download/$FILE_NAME" -o "$BINARY_PATH"; then
+    echo "Бинарный файл успешно загружен: $BINARY_PATH"
+else
+    echo "Ошибка загрузки бинарного файла!" && exit 1
+fi
+
+if chmod +x "$BINARY_PATH"; then
+    echo "Права на выполнение установлены для $BINARY_PATH"
+else
+    echo "Ошибка: не удалось установить права на выполнение для $BINARY_PATH" && exit 1
+fi
 sleep 1
 
-print_message "Загрузка файлов веб-интерфейса"
+print_message "Скачивание и распаковка файлов веб-интерфейса"
 mkdir -p "$KVAS_DIR/build"
-curl -sSL "https://github.com/dan0102dan/kvas-wui/releases/latest/download/build.tar.gz" | \
-  tar xz -C "$KVAS_DIR/build"
+if curl -sSL "https://github.com/dan0102dan/kvas-wui/releases/latest/download/build.tar.gz" | tar xz -C "$KVAS_DIR/build"; then
+    echo "Файлы веб-интерфейса успешно загружены и распакованы в $KVAS_DIR/build"
+else
+    echo "Ошибка: не удалось загрузить или распаковать файлы веб-интерфейса!" && exit 1
+fi
+sleep 1
 
-# Настройка автозапуска
-print_message "Настройка автозапуска программы"
-
-# Конфигурация сервиса
+print_message "Настройка автозапуска для $SERVICE_NAME"
 cat << EOF > "$INIT_SCRIPT"
 #!/bin/sh
 
@@ -87,12 +122,20 @@ DESC="Kvas Web UI Service"
 . /opt/etc/init.d/rc.func
 EOF
 
-chmod +x "$INIT_SCRIPT"
+if chmod +x "$INIT_SCRIPT"; then
+    echo "Сервисный скрипт $INIT_SCRIPT создан и получены права на выполнение."
+else
+    echo "Ошибка: не удалось установить права на выполнение для $INIT_SCRIPT" && exit 1
+fi
 sleep 1
 
-# Запуск сервиса
-print_message "Запуск $SERVICE_NAME..."
-"$INIT_SCRIPT" restart
-echo "Проверка статуса: $INIT_SCRIPT status"
-echo "Логи: tail -f /opt/etc/kvas-wui/app.log"
+print_message "Запуск и перезапуск сервиса $SERVICE_NAME"
+if "$INIT_SCRIPT" restart; then
+    echo "$SERVICE_NAME успешно запущен."
+else
+    echo "Ошибка: не удалось запустить $SERVICE_NAME!" && exit 1
+fi
+
+echo "Для проверки статуса сервиса выполните: $INIT_SCRIPT status"
+echo "Для просмотра логов сервиса используйте: tail -f /var/log/kvas-wui/app.log"
 sleep 1

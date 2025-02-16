@@ -36,7 +36,7 @@ func spaHandler(staticPath, indexPath string) http.Handler {
 }
 
 func main() {
-	utils.InitLogger("/opt/etc/kvas-wui")
+	utils.InitLogger("/var/log/kvas-wui")
 
 	// Запуск API сервера на порту 5000
 	apiMux := http.NewServeMux()
