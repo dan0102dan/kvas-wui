@@ -5,23 +5,11 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+
 	"github.com/dan0102dan/kvas-wui/handlers"
+	"github.com/dan0102dan/kvas-wui/utils"
 )
 
-// CORS middleware для обработки кросс-доменных запросов
-func corsMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE, PUT")
-
-		if r.Method == http.MethodOptions {
-			w.WriteHeader(http.StatusOK)
-			return
-		}
-
-		next.ServeHTTP(w, r)
-	})
-}
 
 // Обработчик для раздачи статичных файлов и fallback для SPA
 func spaHandler(staticPath, indexPath string) http.Handler {
@@ -48,9 +36,10 @@ func spaHandler(staticPath, indexPath string) http.Handler {
 }
 
 func main() {
+	utils.InitLogger("/opt/etc/kvas-wui")
+
 	// Запуск API сервера на порту 5000
 	apiMux := http.NewServeMux()
-
 	apiMux.HandleFunc("/tunnel", handlers.TunnelHandler)
 	apiMux.HandleFunc("/update", handlers.UpdateHandler)
 	apiMux.HandleFunc("/list", handlers.ListHandler)
@@ -58,10 +47,9 @@ func main() {
 	apiMux.HandleFunc("/del", handlers.DelHandler)
 	apiMux.HandleFunc("/clear", handlers.ClearForceHandler)
 
-	// Запуск API сервера
 	go func() {
 		log.Println("API server started on :5000")
-		if err := http.ListenAndServe(":5000", corsMiddleware(apiMux)); err != nil {
+		if err := http.ListenAndServe(":5000", utils.CorsMiddleware(apiMux)); err != nil {
 			log.Fatalf("API server failed: %v", err)
 		}
 	}()

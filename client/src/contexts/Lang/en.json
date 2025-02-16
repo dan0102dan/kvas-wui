@@ -15,7 +15,7 @@
             "available": "Update available",
             "install": "Install",
             "started": "Update started",
-            "warning": "Page will automatically reload in a minute",
+            "warning": "Page will automatically reload after 15 seconds",
             "error": "Error occurred while starting update"
         }
     },
@@ -45,7 +45,7 @@
             "project": "Project",
             "description": "Kvas is a convenient and intuitive utility for managing home internet. With it, you can easily configure a VPN connection, optimize DNS settings, and much more, ensuring network stability and security. All this is in one simple interface!",
             "slogan": "Making routers smarter",
-            "tgChat": "Telegram Chat",
+            "tgChannel": "Telegram Channel",
             "githubRepo": "GitHub Repository",
             "whyUs": "Why Us?",
             "whyUsDescription": "Sometimes there are situations when familiar solutions no longer cope. We offer an innovative approach that changes the idea of routing and data security."

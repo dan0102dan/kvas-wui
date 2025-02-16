@@ -92,7 +92,7 @@ sleep 1
 
 # Запуск сервиса
 print_message "Запуск $SERVICE_NAME..."
-"$INIT_SCRIPT" start
+"$INIT_SCRIPT" restart
 echo "Проверка статуса: $INIT_SCRIPT status"
-echo "Логи: tail -f /var/log/$SERVICE_NAME.log"
+echo "Логи: tail -f /opt/etc/kvas-wui/app.log"
 sleep 1

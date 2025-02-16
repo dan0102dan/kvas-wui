@@ -37,7 +37,7 @@ const AsidePanel: React.FC = () => {
 
             setTimeout(() => {
                 window.location.reload()
-            }, 60000)
+            }, 15000)
         } catch (err) {
             setIsUpdating(false)
             showNotification({

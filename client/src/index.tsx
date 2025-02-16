@@ -16,7 +16,7 @@ const router = createBrowserRouter([
     path: '/',
     element: <App />,
     children: routes.map((route) => {
-      if (route.index) {
+      if (route.path === '/') {
         return {
           index: true,
           element: route.element,

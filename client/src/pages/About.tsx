@@ -62,7 +62,7 @@ const About: React.FC = () => {
                                 target="_blank"
                                 size='md'
                             >
-                                {t('pages.About.tgChat')}
+                                {t('pages.About.tgChannel')}
                             </Button>
 
                             <Button
