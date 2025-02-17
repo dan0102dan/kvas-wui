@@ -60,3 +60,41 @@ export const deleteDomain = async (domain: string): Promise<{ domain: string }> 
 export const clearForce = async (): Promise<{ message: string; backup?: string }> => (
     (await apiClient.get('/clear')).data
 )
+
+export const getSystemStats = async (): Promise<{
+    cpu: {
+        usage: number
+        sys: number
+        user: number
+        iowait: number
+        steal: number
+        cores: number
+        idle: number
+        uptime: string
+        load: [number, number, number]
+    }
+    memory: {
+        free: number
+        used: number
+        pageCache: number
+        usage: number
+    }
+    network: {
+        rxSpeed: string
+        txSpeed: string
+        rxTotal: string
+        txTotal: string
+        retrans: number
+        active: number
+        passive: number
+        fails: number
+        interfaces: number
+    }
+    filesystem: {
+        name: string
+        used: number
+        total: number
+    }
+}> => {
+    return (await apiClient.get('/system-stats')).data
+}

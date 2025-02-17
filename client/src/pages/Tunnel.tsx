@@ -24,9 +24,7 @@ import {
 import { getConnections } from '../api/routerApi'
 
 const TunnelPage: React.FC = () => {
-    const [tunnelData, setTunnelData] = useState<
-        Awaited<ReturnType<typeof getConnections>> | null
-    >(null)
+    const [tunnelData, setTunnelData] = useState<Awaited<ReturnType<typeof getConnections>> | null>(null)
     const [loading, setLoading] = useState<boolean>(true)
 
     useEffect(() => {

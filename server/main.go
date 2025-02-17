@@ -46,6 +46,7 @@ func main() {
 	apiMux.HandleFunc("/add", handlers.AddHandler)
 	apiMux.HandleFunc("/del", handlers.DelHandler)
 	apiMux.HandleFunc("/clear", handlers.ClearForceHandler)
+	apiMux.HandleFunc("/system-stats", handlers.SystemStatsHandler)
 
 	go func() {
 		log.Println("API server started on :5000")
