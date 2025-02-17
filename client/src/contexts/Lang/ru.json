@@ -25,19 +25,6 @@
         "errorTitle": "Ошибка",
         "errorMessage": "Произошла ошибка при отправке сообщения."
     },
-    "forms": {
-        "emailLabel": "Электронная почта",
-        "emailPlaceholder": "your@email.com",
-        "nameLabel": "Имя",
-        "namePlaceholder": "Иван Иванов",
-        "messageLabel": "Ваше сообщение",
-        "messagePlaceholder": "Я хочу узнать больше о вашем продукте...",
-        "sendButton": "Отправить сообщение",
-        "errors": {
-            "emailRequired": "Пожалуйста, введите электронную почту",
-            "messageRequired": "Пожалуйста, введите сообщение"
-        }
-    },
     "pages": {
         "NotFound": {
             "title": "Ничего не найдено",
@@ -57,9 +44,6 @@
         "DomainList": {
             "_": "Безопасный список",
             "title": "Список доменов",
-            "tooltip": {
-                "deleteDomain": "Удалить домен"
-            },
             "error": {
                 "loadingDomains": "Ошибка при загрузке доменов",
                 "duplicateSingle": "уже присутствует в списке",

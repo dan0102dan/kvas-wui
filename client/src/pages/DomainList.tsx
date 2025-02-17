@@ -11,7 +11,6 @@ import {
     ActionIcon,
     Text,
     ScrollArea,
-    Tooltip,
     Center,
     Loader,
     Affix,
@@ -82,20 +81,14 @@ const DomainRow: React.FC<DomainRowProps> = React.memo(
                     </Text>
                 </Table.Td>
                 <Table.Td align="right">
-                    <Tooltip
-                        label={t('pages.DomainList.tooltip.deleteDomain')}
-                        withArrow
-                        position="top"
+                    <ActionIcon
+                        color={item.processing ? 'blue' : 'red'}
+                        loading={item.processing}
+                        onClick={() => onDelete(item.id)}
+                        variant="light"
                     >
-                        <ActionIcon
-                            color={item.processing ? 'blue' : 'red'}
-                            loading={item.processing}
-                            onClick={() => onDelete(item.id)}
-                            variant="light"
-                        >
-                            <IconTrash size={16} />
-                        </ActionIcon>
-                    </Tooltip>
+                        <IconTrash size={16} />
+                    </ActionIcon>
                 </Table.Td>
             </Table.Tr>
         )
@@ -114,7 +107,7 @@ const Th: React.FC<ThProps> = ({ children, sorted, reversed, onSort }) => {
     return (
         <Table.Th>
             <UnstyledButton onClick={onSort}>
-                <Group gap="xs">
+                <Group gap="xs" wrap='nowrap'>
                     <Text fw={500}>{children}</Text>
                     <Center>
                         <Icon size={16} stroke={1.5} />
@@ -195,7 +188,7 @@ const DomainList: React.FC = () => {
                     setErrorMessage('')
                 }
             } else {
-                // Если вставлен список
+                // Если вставлен список доменов
                 const parts = value.split(/[\n,;]+/).map((s) => s.trim()).filter(Boolean)
                 const duplicates = parts.filter((d) =>
                     domains.some((item) => item.domain.toLowerCase() === d.toLowerCase())
