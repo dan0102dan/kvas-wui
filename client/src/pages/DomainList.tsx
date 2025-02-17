@@ -84,7 +84,7 @@ const DomainRow: React.FC<DomainRowProps> = React.memo(
                 <Table.Td align="right">
                     <Tooltip label={t('pages.DomainList.tooltip.deleteDomain')} withArrow position="top">
                         <ActionIcon
-                            color="red"
+                            color={item.processing ? 'blue' : 'red'}
                             loading={item.processing}
                             onClick={() => onDelete(item.id)}
                             variant="light"
