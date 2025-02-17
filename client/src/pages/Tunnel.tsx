@@ -277,7 +277,7 @@ const TunnelPage: React.FC = () => {
                     <Title order={4} mt="xl" mb="md">
                         Доступные сети
                     </Title>
-                    <SimpleGrid cols={3} spacing="lg">
+                    <SimpleGrid cols={{ base: 1, md: 3 }} spacing="lg">
                         {loading
                             ? Array.from({ length: 3 }).map((_, idx) => (
                                 <Card withBorder radius="md" p="lg" key={idx}>
@@ -296,7 +296,7 @@ const TunnelPage: React.FC = () => {
                     <Title order={4} mt="xl" mb="md">
                         Обнаруженные сети
                     </Title>
-                    <SimpleGrid cols={3} spacing="lg">
+                    <SimpleGrid cols={{ base: 1, md: 3 }} spacing="lg">
                         {loading
                             ? Array.from({ length: 3 }).map((_, idx) => (
                                 <Card withBorder radius="md" p="lg" key={idx}>
