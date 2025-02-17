@@ -27,12 +27,8 @@ import {
     IconSelector,
     IconInfoCircle,
 } from '@tabler/icons-react'
-import {
-    getSecureList,
-    addDomain,
-    deleteDomain,
-    clearForce,
-} from '../api/routerApi'
+import { useScrollIntoView } from '@mantine/hooks'
+import { getSecureList, addDomain, deleteDomain, clearForce } from '../api/routerApi'
 import { ALL_SERVICES } from '../utils'
 import { useLang } from '../contexts'
 import { showNotification } from '@mantine/notifications'
@@ -55,21 +51,23 @@ const getServiceForDomain = (domain: string): string => {
     return ''
 }
 
-// Компонент строки таблицы доменов
+// Расширенный интерфейс строки домена с опциональным ref
 interface DomainRowProps {
     item: DomainItem
     isSelected: boolean
     onToggle: (id: string) => void
     onDelete: (id: string) => void
+    rowRef?: React.Ref<HTMLTableRowElement>
 }
 
 const DomainRow: React.FC<DomainRowProps> = React.memo(
-    ({ item, isSelected, onToggle, onDelete }) => {
+    ({ item, isSelected, onToggle, onDelete, rowRef }) => {
         const { t } = useLang()
         return (
-            <Table.Tr bg={isSelected ? 'var(--mantine-color-blue-light)' : undefined}>
+            <Table.Tr ref={rowRef} bg={isSelected ? 'var(--mantine-color-blue-light)' : undefined}>
                 <Table.Td>
                     <Checkbox
+                        aria-label={t('pages.DomainList.checkbox.selectDomain')}
                         checked={isSelected}
                         disabled={item.processing}
                         onChange={() => onToggle(item.id)}
@@ -114,9 +112,7 @@ const Th: React.FC<ThProps> = ({ children, sorted, reversed, onSort }) => {
         <Table.Th>
             <UnstyledButton onClick={onSort}>
                 <Group gap="xs">
-                    <Text fw={500}>
-                        {children}
-                    </Text>
+                    <Text fw={500}>{children}</Text>
                     <Center>
                         <Icon size={16} stroke={1.5} />
                     </Center>
@@ -138,8 +134,12 @@ const DomainList: React.FC = () => {
     const [sortBy, setSortBy] = useState<'domain' | 'service' | null>(null)
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc' | null>(null)
 
-    // Состояние фильтрации по сервису (имена сервисов)
+    // Фильтрация по сервисам
     const [selectedServiceFilters, setSelectedServiceFilters] = useState<string[]>([])
+
+    // Для скролла к только что добавленному элементу
+    const { scrollIntoView, targetRef } = useScrollIntoView({ offset: 20 })
+    const [lastAddedDomainId, setLastAddedDomainId] = useState<string | null>(null)
 
     useEffect(() => {
         getSecureList()
@@ -149,7 +149,6 @@ const DomainList: React.FC = () => {
                     domain: d,
                     processing: false,
                 }))
-                // Первичная сортировка по домену
                 initial.sort((a, b) => a.domain.localeCompare(b.domain))
                 setDomains(initial)
             })
@@ -164,6 +163,14 @@ const DomainList: React.FC = () => {
             .finally(() => setLoading(false))
     }, [t])
 
+    // Эффект для скролла до только что добавленного домена
+    useEffect(() => {
+        if (lastAddedDomainId) {
+            scrollIntoView({ alignment: 'center' })
+            setLastAddedDomainId(null)
+        }
+    }, [lastAddedDomainId, scrollIntoView])
+
     const handleInputChange = useCallback(
         (e: React.ChangeEvent<HTMLInputElement>) => {
             const value = e.currentTarget.value
@@ -172,12 +179,9 @@ const DomainList: React.FC = () => {
             const duplicates = parts.filter((d) =>
                 domains.some((item) => item.domain.toLowerCase() === d.toLowerCase())
             )
+
             if (duplicates.length > 0) {
-                setErrorMessage(
-                    duplicates.length === 1
-                        ? `${t('pages.DomainList.error.duplicateSingle')} "${duplicates[0]}"`
-                        : `${t('pages.DomainList.error.duplicateMultiple')} ${duplicates.join(', ')}`
-                )
+                setErrorMessage(`"${duplicates.at(-1)}" ${t('pages.DomainList.error.duplicateSingle')}`)
             } else {
                 setErrorMessage('')
             }
@@ -203,7 +207,20 @@ const DomainList: React.FC = () => {
                     })
                 }
             })
-            if (newEntries.length === 0) return
+            if (newEntries.length === 0) {
+                // Показываем уведомление только если пользователь ввёл больше одного домена
+                if (domainStrings.length > 1) {
+                    showNotification({
+                        title: t('pages.DomainList.error.duplicateAllTitle'),
+                        message: `${t('pages.DomainList.error.duplicateAllMessage')} ${domainStrings.join(', ')}`,
+                        color: 'red',
+                    })
+                }
+                return
+            }
+            // Запоминаем ID последнего добавленного домена для скролла
+            setLastAddedDomainId(newEntries[newEntries.length - 1].id)
+
             setDomains((prev) => {
                 const combined = [...prev, ...newEntries]
                 if (sortBy) {
@@ -240,10 +257,9 @@ const DomainList: React.FC = () => {
                     })
             })
         },
-        [domains, sortBy, sortOrder]
+        [domains, sortBy, sortOrder, t]
     )
 
-    // Обработчик сортировки по столбцу
     const handleSort = useCallback(
         (column: 'domain' | 'service') => {
             if (sortBy !== column) {
@@ -259,7 +275,6 @@ const DomainList: React.FC = () => {
         [sortBy, sortOrder]
     )
 
-    // Сортировка доменов
     const sortedDomains = useMemo(() => {
         if (!sortBy) return domains
         const sorted = [...domains].sort((a, b) => {
@@ -277,7 +292,6 @@ const DomainList: React.FC = () => {
         return sorted
     }, [domains, sortBy, sortOrder])
 
-    // Фильтрация доменов по выбранным сервисам
     const filteredDomains = useMemo(() => {
         if (selectedServiceFilters.length === 0) return sortedDomains
         return sortedDomains.filter((item) =>
@@ -285,7 +299,6 @@ const DomainList: React.FC = () => {
         )
     }, [sortedDomains, selectedServiceFilters])
 
-    // Вычисляем рекомендуемые домены, которых ещё нет в списке для выбранных сервисов
     const missingRecommendedDomains = useMemo(() => {
         if (selectedServiceFilters.length === 0) return []
         const missing: string[] = []
@@ -335,7 +348,7 @@ const DomainList: React.FC = () => {
                         setDomains((prev) => prev.filter((dom) => dom.id !== id))
                         setSelectedRows((prev) => prev.filter((x) => x !== id))
                     })
-                    .catch((error) => {
+                    .catch(() => {
                         setDomains((prev) =>
                             prev.map((dom) =>
                                 dom.id === id ? { ...dom, processing: false } : dom
@@ -355,7 +368,7 @@ const DomainList: React.FC = () => {
                 setDomains((prev) => prev.filter((d) => d.id !== id))
                 setSelectedRows((prev) => prev.filter((x) => x !== id))
             })
-            .catch((error) => {
+            .catch(() => {
                 setDomains((prev) =>
                     prev.map((d) => (d.id === id ? { ...d, processing: false } : d))
                 )
@@ -370,11 +383,11 @@ const DomainList: React.FC = () => {
                 isSelected={selectedRows.includes(item.id)}
                 onToggle={handleToggleRowSelection}
                 onDelete={handleDeleteDomain}
+                rowRef={item.id === lastAddedDomainId ? targetRef : undefined}
             />
         ))
-    }, [filteredDomains, selectedRows, handleToggleRowSelection, handleDeleteDomain])
+    }, [filteredDomains, selectedRows, handleToggleRowSelection, handleDeleteDomain, lastAddedDomainId, targetRef])
 
-    // Обработчик клика по кнопке сервиса (фильтрация)
     const handleToggleService = useCallback((serviceName: string) => {
         setSelectedServiceFilters((prev) =>
             prev.includes(serviceName)
@@ -383,15 +396,12 @@ const DomainList: React.FC = () => {
         )
     }, [])
 
-    // Обработчик для добавления всех недостающих рекомендуемых доменов
     const handleAddMissingRecommendedDomains = useCallback(() => {
         if (missingRecommendedDomains.length > 0) {
             addDomains(missingRecommendedDomains.join('\n'))
         }
     }, [missingRecommendedDomains, addDomains])
 
-    // Если для выбранных сервисов отсутствуют рекомендуемые домены и поле ввода пустое,
-    // меняем назначение кнопки на "Дополнить" (чтобы по клику сразу добавить недостающие домены)
     const shouldAddRecommended = missingRecommendedDomains.length > 0 && inputValue.trim() === ''
 
     return (
@@ -422,6 +432,16 @@ const DomainList: React.FC = () => {
                     placeholder={t('pages.DomainList.inputPlaceholder')}
                     value={inputValue}
                     onChange={handleInputChange}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault()
+                            if (shouldAddRecommended) {
+                                handleAddMissingRecommendedDomains()
+                            } else {
+                                addDomains(inputValue)
+                            }
+                        }
+                    }}
                     onPaste={(e) => {
                         const pastedText = e.clipboardData.getData('text')
                         if (pastedText.match(/[\n,;]/)) {
@@ -446,7 +466,6 @@ const DomainList: React.FC = () => {
                 </Button>
             </Group>
 
-            {/* Если список доменов (после фильтрации) НЕ пуст, но отсутствуют рекомендуемые домены – показываем уведомление */}
             {filteredDomains.length > 0 && missingRecommendedDomains.length > 0 && (
                 <Alert
                     icon={<IconInfoCircle size={16} />}
@@ -499,10 +518,9 @@ const DomainList: React.FC = () => {
                             <Table.Tr>
                                 <Table.Th>
                                     <Checkbox
+                                        aria-label={t('pages.DomainList.checkbox.selectAll')}
                                         checked={selectedRows.length === domains.length && domains.length > 0}
-                                        indeterminate={
-                                            selectedRows.length > 0 && selectedRows.length < domains.length
-                                        }
+                                        indeterminate={selectedRows.length > 0 && selectedRows.length < domains.length}
                                         onChange={toggleSelectAll}
                                     />
                                 </Table.Th>
@@ -528,20 +546,10 @@ const DomainList: React.FC = () => {
                 </ScrollArea>
             )}
 
-            <Transition
-                mounted={selectedRows.length > 0}
-                transition="slide-up"
-                duration={200}
-                timingFunction="ease"
-            >
+            <Transition mounted={selectedRows.length > 0} transition="slide-up" duration={200} timingFunction="ease">
                 {(styles) => (
                     <Affix position={{ bottom: 20, right: 20 }}>
-                        <Button
-                            style={styles}
-                            color="red"
-                            leftSection={<IconTrash size={16} />}
-                            onClick={deleteSelectedRows}
-                        >
+                        <Button style={styles} color="red" leftSection={<IconTrash size={16} />} onClick={deleteSelectedRows}>
                             {t('pages.DomainList.deleteSelected')}
                         </Button>
                     </Affix>

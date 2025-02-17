@@ -62,8 +62,9 @@
             },
             "error": {
                 "loadingDomains": "Ошибка при загрузке доменов",
-                "duplicateSingle": "Домен",
-                "duplicateMultiple": "Домены",
+                "duplicateSingle": "уже присутствует в списке",
+                "duplicateAllTitle": "Дубликаты",
+                "duplicateAllMessage": "Следующие домены уже присутствуют в списке:",
                 "clearingDomains": "Ошибка при очистке списка доменов",
                 "deletingDomain": "Ошибка при удалении домена"
             },
