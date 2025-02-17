@@ -137,5 +137,6 @@ else
 fi
 
 echo "Для проверки статуса сервиса выполните: $INIT_SCRIPT status"
-echo "Для просмотра логов сервиса используйте: tail -f /var/log/kvas-wui/app.log"
 sleep 1
+echo "Читаем логи: tail -f /var/log/kvas-wui/app.log"
+tail -f /var/log/kvas-wui/app.log
