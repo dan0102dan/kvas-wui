@@ -25,7 +25,7 @@ import {
     IconChevronUp,
     IconChevronDown,
     IconSelector,
-    IconInfoCircle
+    IconInfoCircle,
 } from '@tabler/icons-react'
 import {
     getSecureList,
@@ -34,6 +34,8 @@ import {
     clearForce,
 } from '../api/routerApi'
 import { ALL_SERVICES } from '../utils'
+import { useLang } from '../contexts'
+import { showNotification } from '@mantine/notifications'
 
 // Интерфейс для домена
 interface DomainItem {
@@ -50,7 +52,7 @@ const getServiceForDomain = (domain: string): string => {
             return service.name
         }
     }
-    return 'Неизвестно'
+    return ''
 }
 
 // Компонент строки таблицы доменов
@@ -63,11 +65,11 @@ interface DomainRowProps {
 
 const DomainRow: React.FC<DomainRowProps> = React.memo(
     ({ item, isSelected, onToggle, onDelete }) => {
+        const { t } = useLang()
         return (
             <Table.Tr bg={isSelected ? 'var(--mantine-color-blue-light)' : undefined}>
                 <Table.Td>
                     <Checkbox
-                        aria-label="Выбрать домен"
                         checked={isSelected}
                         disabled={item.processing}
                         onChange={() => onToggle(item.id)}
@@ -81,8 +83,8 @@ const DomainRow: React.FC<DomainRowProps> = React.memo(
                         {getServiceForDomain(item.domain)}
                     </Text>
                 </Table.Td>
-                <Table.Td align='right'>
-                    <Tooltip label="Удалить домен" withArrow position="top">
+                <Table.Td align="right">
+                    <Tooltip label={t('pages.DomainList.tooltip.deleteDomain')} withArrow position="top">
                         <ActionIcon
                             color="red"
                             loading={item.processing}
@@ -111,8 +113,8 @@ const Th: React.FC<ThProps> = ({ children, sorted, reversed, onSort }) => {
     return (
         <Table.Th>
             <UnstyledButton onClick={onSort}>
-                <Group gap="sm" grow>
-                    <Text fw={500} fz="sm">
+                <Group gap="xs">
+                    <Text fw={500}>
                         {children}
                     </Text>
                     <Center>
@@ -124,7 +126,8 @@ const Th: React.FC<ThProps> = ({ children, sorted, reversed, onSort }) => {
     )
 }
 
-const SecureList: React.FC = () => {
+const DomainList: React.FC = () => {
+    const { t } = useLang()
     const [domains, setDomains] = useState<DomainItem[]>([])
     const [selectedRows, setSelectedRows] = useState<string[]>([])
     const [inputValue, setInputValue] = useState('')
@@ -150,34 +153,36 @@ const SecureList: React.FC = () => {
                 initial.sort((a, b) => a.domain.localeCompare(b.domain))
                 setDomains(initial)
             })
-            .catch((error) => {
-                console.error('Ошибка при загрузке доменов:', error)
+            .catch((e) => {
+                console.error(t('pages.DomainList.error.loadingDomains'), e)
+                showNotification({
+                    title: t('pages.DomainList.error.loadingDomains'),
+                    message: e.message,
+                    color: 'red',
+                })
             })
             .finally(() => setLoading(false))
-    }, [])
+    }, [t])
 
     const handleInputChange = useCallback(
         (e: React.ChangeEvent<HTMLInputElement>) => {
             const value = e.currentTarget.value
             setInputValue(value)
-            const parts = value
-                .split(/[\n,;]+/)
-                .map((s) => s.trim())
-                .filter(Boolean)
+            const parts = value.split(/[\n,;]+/).map((s) => s.trim()).filter(Boolean)
             const duplicates = parts.filter((d) =>
                 domains.some((item) => item.domain.toLowerCase() === d.toLowerCase())
             )
             if (duplicates.length > 0) {
                 setErrorMessage(
                     duplicates.length === 1
-                        ? `Домен "${duplicates[0]}" уже есть в списке`
-                        : `Домены ${duplicates.join(', ')} уже есть в списке`
+                        ? `${t('pages.DomainList.error.duplicateSingle')} "${duplicates[0]}"`
+                        : `${t('pages.DomainList.error.duplicateMultiple')} ${duplicates.join(', ')}`
                 )
             } else {
                 setErrorMessage('')
             }
         },
-        [domains]
+        [domains, t]
     )
 
     const addDomains = useCallback(
@@ -185,17 +190,11 @@ const SecureList: React.FC = () => {
             const trimmed = input.trim()
             if (!trimmed) return
 
-            const domainStrings = trimmed
-                .split(/[\n,;]+/)
-                .map((s) => s.trim())
-                .filter(Boolean)
-
+            const domainStrings = trimmed.split(/[\n,;]+/).map((s) => s.trim()).filter(Boolean)
             const newEntries: DomainItem[] = []
             domainStrings.forEach((rawDomain) => {
                 const lower = rawDomain.toLowerCase()
-                const exists = domains.some(
-                    (item) => item.domain.toLowerCase() === lower
-                )
+                const exists = domains.some((item) => item.domain.toLowerCase() === lower)
                 if (!exists) {
                     newEntries.push({
                         id: rawDomain,
@@ -204,9 +203,7 @@ const SecureList: React.FC = () => {
                     })
                 }
             })
-
             if (newEntries.length === 0) return
-
             setDomains((prev) => {
                 const combined = [...prev, ...newEntries]
                 if (sortBy) {
@@ -229,7 +226,6 @@ const SecureList: React.FC = () => {
             })
             setInputValue('')
             setErrorMessage('')
-
             newEntries.forEach((entry) => {
                 addDomain(entry.domain)
                     .then(() => {
@@ -239,8 +235,7 @@ const SecureList: React.FC = () => {
                             )
                         )
                     })
-                    .catch((error) => {
-                        console.error('Ошибка при добавлении домена', entry.domain, error)
+                    .catch(() => {
                         setDomains((prev) => prev.filter((item) => item.id !== entry.id))
                     })
             })
@@ -325,13 +320,9 @@ const SecureList: React.FC = () => {
         if (selectedRows.length === domains.length) {
             setLoading(true)
             clearForce()
-                .then((res) => {
-                    console.log('Ответ от clearForce:', res)
+                .then(() => {
                     setDomains([])
                     setSelectedRows([])
-                })
-                .catch((error) => {
-                    console.error('Ошибка при очистке таблицы', error)
                 })
                 .finally(() => setLoading(false))
         } else {
@@ -345,7 +336,6 @@ const SecureList: React.FC = () => {
                         setSelectedRows((prev) => prev.filter((x) => x !== id))
                     })
                     .catch((error) => {
-                        console.error('Ошибка при удалении домена', id, error)
                         setDomains((prev) =>
                             prev.map((dom) =>
                                 dom.id === id ? { ...dom, processing: false } : dom
@@ -366,7 +356,6 @@ const SecureList: React.FC = () => {
                 setSelectedRows((prev) => prev.filter((x) => x !== id))
             })
             .catch((error) => {
-                console.error('Ошибка при удалении домена', id, error)
                 setDomains((prev) =>
                     prev.map((d) => (d.id === id ? { ...d, processing: false } : d))
                 )
@@ -401,9 +390,13 @@ const SecureList: React.FC = () => {
         }
     }, [missingRecommendedDomains, addDomains])
 
+    // Если для выбранных сервисов отсутствуют рекомендуемые домены и поле ввода пустое,
+    // меняем назначение кнопки на "Дополнить" (чтобы по клику сразу добавить недостающие домены)
+    const shouldAddRecommended = missingRecommendedDomains.length > 0 && inputValue.trim() === ''
+
     return (
         <Container py="xl">
-            <Title mb="md">Список доменов</Title>
+            <Title mb="md">{t('pages.DomainList.title')}</Title>
 
             {/* Панель фильтрации по сервису */}
             <Group mb="md">
@@ -426,7 +419,7 @@ const SecureList: React.FC = () => {
 
             <Group mb="md">
                 <TextInput
-                    placeholder="Введите домен или вставьте список..."
+                    placeholder={t('pages.DomainList.inputPlaceholder')}
                     value={inputValue}
                     onChange={handleInputChange}
                     onPaste={(e) => {
@@ -439,8 +432,17 @@ const SecureList: React.FC = () => {
                     flex={1}
                     error={errorMessage || undefined}
                 />
-                <Button leftSection={<IconPlus size={16} />} onClick={() => addDomains(inputValue)}>
-                    {missingRecommendedDomains.length > 0 && inputValue.trim() === '' ? 'Дополнить рекомендуемыми' : 'Добавить'}
+                <Button
+                    leftSection={<IconPlus size={16} />}
+                    onClick={() => {
+                        if (shouldAddRecommended) {
+                            handleAddMissingRecommendedDomains()
+                        } else {
+                            addDomains(inputValue)
+                        }
+                    }}
+                >
+                    {shouldAddRecommended ? t('pages.DomainList.fillRecommended') : t('pages.DomainList.add')}
                 </Button>
             </Group>
 
@@ -448,11 +450,11 @@ const SecureList: React.FC = () => {
             {filteredDomains.length > 0 && missingRecommendedDomains.length > 0 && (
                 <Alert
                     icon={<IconInfoCircle size={16} />}
-                    title="Дополните список"
+                    title={t('pages.DomainList.missingAlert.title')}
                     color="blue"
                     mb="sm"
                 >
-                    В вашем списке отсутствуют рекомендуемые домены: {missingRecommendedDomains.join(', ')}.
+                    {t('pages.DomainList.missingAlert.message')} {missingRecommendedDomains.join(', ')}.
                 </Alert>
             )}
 
@@ -460,32 +462,32 @@ const SecureList: React.FC = () => {
                 <Center>
                     <Stack align="center">
                         <Loader size="xl" type="dots" color="blue" />
-                        <Text size="xl">Загрузка доменов...</Text>
+                        <Text size="xl">{t('pages.DomainList.loading')}</Text>
                         <Text size="sm" c="dimmed">
-                            Пожалуйста, подождите, мы получаем данные.
+                            {t('pages.DomainList.loadingInfo')}
                         </Text>
                     </Stack>
                 </Center>
             ) : domains.length === 0 ? (
                 <Center>
                     <Stack align="center">
-                        <Text size="xl">Пусто</Text>
+                        <Text size="xl">{t('pages.DomainList.emptyTitle')}</Text>
                         <Text size="sm" c="dimmed">
-                            Добавьте новые домены, чтобы они появились здесь.
+                            {t('pages.DomainList.emptySubtitle')}
                         </Text>
                     </Stack>
                 </Center>
             ) : filteredDomains.length === 0 ? (
                 <Center>
                     <Stack align="center">
-                        <Text size="xl">Нет доменов для выбранного фильтра</Text>
+                        <Text size="xl">{t('pages.DomainList.filter.emptyTitle')}</Text>
                         {selectedServiceFilters.length > 0 && missingRecommendedDomains.length > 0 ? (
                             <Button leftSection={<IconPlus size={16} />} onClick={handleAddMissingRecommendedDomains}>
-                                Добавить рекомендуемые домены
+                                {t('pages.DomainList.fillRecommended')}
                             </Button>
                         ) : (
                             <Text size="sm" c="dimmed">
-                                Попробуйте изменить фильтр или добавить домены вручную.
+                                {t('pages.DomainList.filter.emptySubtitle')}
                             </Text>
                         )}
                     </Stack>
@@ -497,7 +499,6 @@ const SecureList: React.FC = () => {
                             <Table.Tr>
                                 <Table.Th>
                                     <Checkbox
-                                        aria-label="Выбрать все"
                                         checked={selectedRows.length === domains.length && domains.length > 0}
                                         indeterminate={
                                             selectedRows.length > 0 && selectedRows.length < domains.length
@@ -510,14 +511,14 @@ const SecureList: React.FC = () => {
                                     reversed={sortOrder === 'desc'}
                                     onSort={() => handleSort('domain')}
                                 >
-                                    Домен
+                                    {t('pages.DomainList.table.domain')}
                                 </Th>
                                 <Th
                                     sorted={sortBy === 'service'}
                                     reversed={sortOrder === 'desc'}
                                     onSort={() => handleSort('service')}
                                 >
-                                    Сервис
+                                    {t('pages.DomainList.table.service')}
                                 </Th>
                                 <Table.Th />
                             </Table.Tr>
@@ -541,7 +542,7 @@ const SecureList: React.FC = () => {
                             leftSection={<IconTrash size={16} />}
                             onClick={deleteSelectedRows}
                         >
-                            Удалить выбранное
+                            {t('pages.DomainList.deleteSelected')}
                         </Button>
                     </Affix>
                 )}
@@ -550,4 +551,4 @@ const SecureList: React.FC = () => {
     )
 }
 
-export default SecureList
+export default DomainList

@@ -1,7 +1,7 @@
 import { IconInfoSquareRounded, IconFileText, IconCloudDataConnection, IconError404 } from '@tabler/icons-react'
 import About from './pages/About'
 import Tunnel from './pages/Tunnel'
-import SecureList from './pages/SecureList'
+import DomainList from './pages/DomainList'
 import NotFound from './pages/NotFound'
 
 export interface Route {
@@ -14,10 +14,10 @@ export interface Route {
 
 export const routes: Route[] = [
     {
-        path: 'secureList',
-        label: 'SecureList',
+        path: 'domainList',
+        label: 'DomainList',
         icon: IconFileText,
-        element: <SecureList />,
+        element: <DomainList />,
     },
     {
         path: 'tunnel',
