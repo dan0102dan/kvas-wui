@@ -316,12 +316,12 @@ const DomainList: React.FC = () => {
     }, [selectedServiceFilters, domains])
 
     const toggleSelectAll = useCallback(() => {
-        if (selectedRows.length === domains.length) {
+        if (selectedRows.length === filteredDomains.length) {
             setSelectedRows([])
         } else {
-            setSelectedRows(domains.map((d) => d.id))
+            setSelectedRows(filteredDomains.map((d) => d.id))
         }
-    }, [selectedRows, domains])
+    }, [selectedRows, filteredDomains])
 
     const handleToggleRowSelection = useCallback((id: string) => {
         setSelectedRows((prev) =>
