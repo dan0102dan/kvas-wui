@@ -1,6 +1,6 @@
 # Kvas WUI
 
-![KVAS WUI](./images/cover.jpg)
+![KVAS WUI](./images/cover.png)
 
 ## ⚡️ Быстрая установка для роутеров
 

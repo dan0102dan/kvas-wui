@@ -25,11 +25,11 @@ else
     echo "Ошибка: не удалось обновить пакеты!" && exit 1
 fi
 
-print_message "Установка необходимых утилит: git-http и curl"
-if opkg install git-http curl; then
-    echo "Установка git-http и curl завершена успешно."
+print_message "Установка необходимых утилит: и curl"
+if opkg install curl; then
+    echo "Установка curl завершена успешно."
 else
-    echo "Ошибка: не удалось установить git-http и/или curl!" && exit 1
+    echo "Ошибка: не удалось установить curl!" && exit 1
 fi
 
 print_message "Определение архитектуры системы..."
@@ -138,5 +138,16 @@ fi
 
 echo "Для проверки статуса сервиса выполните: $INIT_SCRIPT status"
 sleep 1
-echo "Читаем логи: tail -f /var/log/kvas-wui/app.log"
-tail -f /var/log/kvas-wui/app.log
+
+
+print_message "Запуск и перезапуск сервиса $SERVICE_NAME"
+if "$INIT_SCRIPT" restart; then
+    echo "$SERVICE_NAME успешно запущен."
+else
+    echo "Ошибка: не удалось запустить $SERVICE_NAME!" && exit 1
+fi
+print_message "Установка завершена!"
+echo "Вы можете открыть веб-интерфейс, перейдя по адресу:"
+echo -e "\033[1;34m  http://my.keenetic.net:3000\033[0m"
+
+echo "Чтобы посмотреть логи, введите: cat /var/log/kvas-wui/app.log"

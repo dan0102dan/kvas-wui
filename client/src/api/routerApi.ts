@@ -1,9 +1,7 @@
 import axios from 'axios'
 
 export const apiClient = axios.create({
-    baseURL: process.env.NODE_ENV === 'production'
-        ? 'http://192.168.1.1:5000'
-        : 'http://192.168.1.1:5000',
+    baseURL: 'http://my.keenetic.net:5000',
     withCredentials: false
 })
 

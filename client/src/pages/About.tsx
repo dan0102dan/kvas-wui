@@ -9,7 +9,6 @@ import {
     Badge,
     Group,
     Card,
-    Box
 } from '@mantine/core'
 import {
     IconArrowRight,
@@ -32,54 +31,52 @@ const About: React.FC = () => {
                 // вычитаем размер Header'а
                 style={{ minHeight: 'calc(100vh - 60px)' }}
             >
-                <Box flex={1}>
-                    <Container size="sm" py="xl" px="md">
-                        <Center mb="md">
-                            <Title ta='center'>
-                                {t('pages.About.project') + ' '}
-                                <Text component="span" c="blue" inherit>
-                                    «Квас WUI»
-                                </Text>
-                            </Title>
-                        </Center>
+                <Container py="xl" flex={1}>
+                    <Center mb="md">
+                        <Title ta='center'>
+                            {t('pages.About.project') + ' '}
+                            <Text component="span" c="blue" inherit>
+                                «Квас WUI»
+                            </Text>
+                        </Title>
+                    </Center>
 
-                        <Center mb="xl">
-                            <Container size={600} p={0}>
-                                <Text size="lg" c="dimmed">
-                                    {t('pages.About.description')}
-                                </Text>
-                            </Container>
-                        </Center>
+                    <Center mb="xl">
+                        <Container size={600} p={0}>
+                            <Text size="lg" c="dimmed">
+                                {t('pages.About.description')}
+                            </Text>
+                        </Container>
+                    </Center>
 
-                        <Flex justify="center" align="center" wrap="wrap" gap="md">
-                            <Button
-                                variant="gradient"
-                                gradient={{ from: 'indigo', to: 'blue', deg: 247 }}
-                                leftSection={<IconBrandTelegram size={20} />}
-                                rightSection={<IconArrowRight size={14} />}
-                                component="a"
-                                href="https://t.me/+q_2_dYFnm3cyNjUy"
-                                target="_blank"
-                                size='md'
-                            >
-                                {t('pages.About.tgChannel')}
-                            </Button>
+                    <Flex justify="center" align="center" wrap="wrap" gap="md">
+                        <Button
+                            variant="gradient"
+                            gradient={{ from: 'indigo', to: 'blue', deg: 247 }}
+                            leftSection={<IconBrandTelegram size={20} />}
+                            rightSection={<IconArrowRight size={14} />}
+                            component="a"
+                            href="https://t.me/+q_2_dYFnm3cyNjUy"
+                            target="_blank"
+                            size='md'
+                        >
+                            {t('pages.About.tgChannel')}
+                        </Button>
 
-                            <Button
-                                variant="gradient"
-                                gradient={{ from: 'violet', to: 'grape', deg: 247 }}
-                                leftSection={<IconBrandGithub size={20} />}
-                                rightSection={<IconArrowRight size={14} />}
-                                component="a"
-                                href="https://github.com/dan0102dan/kvas-wui"
-                                target="_blank"
-                                size='md'
-                            >
-                                {t('pages.About.githubRepo')}
-                            </Button>
-                        </Flex>
-                    </Container>
-                </Box>
+                        <Button
+                            variant="gradient"
+                            gradient={{ from: 'violet', to: 'grape', deg: 247 }}
+                            leftSection={<IconBrandGithub size={20} />}
+                            rightSection={<IconArrowRight size={14} />}
+                            component="a"
+                            href="https://github.com/dan0102dan/kvas-wui"
+                            target="_blank"
+                            size='md'
+                        >
+                            {t('pages.About.githubRepo')}
+                        </Button>
+                    </Flex>
+                </Container>
 
                 <Group justify="center" py="md">
                     <Badge variant="filled" size="lg">

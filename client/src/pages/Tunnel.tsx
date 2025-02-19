@@ -259,9 +259,7 @@ const TunnelPage: React.FC = () => {
 
     return (
         <Container py="xl">
-            <Title order={1} mb="xl">
-                Информация о подключениях
-            </Title>
+            <Title mb="md">Информация о подключениях</Title>
 
             <Grid gutter="xl">
                 <Grid.Col span={12}>

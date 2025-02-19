@@ -8,6 +8,7 @@ import {
     Title,
     Divider,
     Progress,
+    Skeleton,
     useMantineTheme,
 } from '@mantine/core'
 import {
@@ -19,7 +20,11 @@ import {
 import { notifications } from '@mantine/notifications'
 import { DonutChart, LineChart, CompositeChart } from '@mantine/charts'
 import { getSystemStats } from '../api/routerApi'
+import { useLang } from '../contexts'
 
+const MAX_POINTS = 30
+const FETCH_INTERVAL = 1000
+const ALPHA = 0.3
 
 function smooth(prevVal: number, newVal: number, alpha = ALPHA): number {
     return alpha * newVal + (1 - alpha) * prevVal
@@ -60,11 +65,6 @@ function formatTimeTick(t: number): string {
         second: '2-digit',
     })
 }
-
-
-const MAX_POINTS = 30
-const FETCH_INTERVAL = 1000
-const ALPHA = 0.3
 
 interface SystemStats {
     cpu: {
@@ -111,13 +111,6 @@ interface CPUHistoryPoint {
     idle: number
 }
 
-interface MemHistoryPoint {
-    time: number
-    used: number
-    free: number
-    cache: number
-}
-
 interface NetHistoryPoint {
     time: number
     rx: number
@@ -126,21 +119,16 @@ interface NetHistoryPoint {
 
 const SystemDashboard: React.FC = () => {
     const theme = useMantineTheme()
+    const { t } = useLang()
     const [stats, setStats] = useState<SystemStats | null>(null)
-    const [loading, setLoading] = useState(true)
-
     const [cpuHistory, setCpuHistory] = useState<CPUHistoryPoint[]>([])
-    const [memHistory, setMemHistory] = useState<MemHistoryPoint[]>([])
     const [netHistory, setNetHistory] = useState<NetHistoryPoint[]>([])
-
     const intervalRef = useRef<NodeJS.Timeout | null>(null)
 
     const fetchStats = async () => {
         try {
             const data = await getSystemStats()
             setStats(data)
-            setLoading(false)
-
             const now = Date.now()
 
             setCpuHistory((prev) => {
@@ -152,17 +140,6 @@ const SystemDashboard: React.FC = () => {
                     iowait: last ? smooth(last.iowait, data.cpu.iowait) : data.cpu.iowait,
                     steal: last ? smooth(last.steal, data.cpu.steal) : data.cpu.steal,
                     idle: last ? smooth(last.idle, data.cpu.idle) : data.cpu.idle,
-                }
-                return pushPoint(prev, point)
-            })
-
-            setMemHistory((prev) => {
-                const last = prev[prev.length - 1]
-                const point: MemHistoryPoint = {
-                    time: now,
-                    used: last ? smooth(last.used, data.memory.used) : data.memory.used,
-                    free: last ? smooth(last.free, data.memory.free) : data.memory.free,
-                    cache: last ? smooth(last.cache, data.memory.pageCache) : data.memory.pageCache,
                 }
                 return pushPoint(prev, point)
             })
@@ -182,9 +159,8 @@ const SystemDashboard: React.FC = () => {
             notifications.show({
                 title: 'Ошибка',
                 message: 'Не удалось загрузить данные о системе',
-                color: 'red',
+                c: 'red',
             })
-            setLoading(false)
         }
     }
 
@@ -196,21 +172,6 @@ const SystemDashboard: React.FC = () => {
         }
     }, [])
 
-    if (loading && !stats) {
-        return (
-            <Container size="lg" p="xl">
-                <Title>Загрузка...</Title>
-            </Container>
-        )
-    }
-    if (!stats) {
-        return (
-            <Container size="lg" p="xl">
-                <Title>Нет данных</Title>
-            </Container>
-        )
-    }
-
     const cpuChartData = cpuHistory.map((p) => ({
         time: p.time,
         user: p.user,
@@ -219,12 +180,6 @@ const SystemDashboard: React.FC = () => {
         steal: p.steal,
         idle: p.idle,
     }))
-    const memChartData = memHistory.map((p) => ({
-        time: p.time,
-        used: p.used,
-        free: p.free,
-        cache: p.cache,
-    }))
     const netChartData = netHistory.map((p) => ({
         time: p.time,
         rx: p.rx,
@@ -232,225 +187,228 @@ const SystemDashboard: React.FC = () => {
     }))
 
     const memoryDonutData = [
-        { name: 'Free', value: stats.memory.free, color: theme.colors.teal[6] },
-        { name: 'Used', value: stats.memory.used, color: theme.colors.red[6] },
-        { name: 'Cache', value: stats.memory.pageCache, color: theme.colors.blue[6] },
+        { name: 'Free', value: stats?.memory.free || 0, color: theme.colors.teal[6] },
+        { name: 'Used', value: stats?.memory.used || 0, color: theme.colors.red[6] },
+        { name: 'Cache', value: stats?.memory.pageCache || 0, color: theme.colors.blue[6] },
     ]
 
     const fsUsedPercent =
-        stats.filesystem.total > 0
+        stats && stats.filesystem.total > 0
             ? (stats.filesystem.used / stats.filesystem.total) * 100
             : 0
 
     return (
-        <Container size="lg" p="md">
-            <Title order={2} mb="md">
-                OpenWRT Router Dashboard
-            </Title>
+        <Container py="xl">
+            <Title mb="md">{t('pages.SystemStatus.title')}</Title>
 
-            <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
+            <SimpleGrid cols={{ base: 1, md: 2 }}>
+                {/* CPU Card */}
                 <Card radius="md" withBorder p="md">
-                    <Group justify="space-between" align="center" mb="xs">
-                        <Group align="center">
-                            <IconCpu size={28} />
-                            <Text size="xl" fw={700}>
-                                {Math.round(stats.cpu.usage)}%
-                            </Text>
-                        </Group>
-                        <Text size="sm" color="dimmed">
-                            CPU Usage
-                        </Text>
-                    </Group>
-
-                    <Divider my="xs" />
-
-                    <Group justify="space-between" align="center">
-                        <Text size="sm" color="dimmed">
-                            Sys: {stats.cpu.sys.toFixed(1)}%
-                        </Text>
-                        <Text size="sm" color="dimmed">
-                            User: {stats.cpu.user.toFixed(1)}%
-                        </Text>
-                        <Text size="sm" color="dimmed">
-                            iowait: {stats.cpu.iowait.toFixed(1)}%
-                        </Text>
-                        <Text size="sm" color="dimmed">
-                            Steal: {stats.cpu.steal.toFixed(1)}%
-                        </Text>
-                    </Group>
-
-                    <Divider my="xs" />
-
-                    <Group justify="space-between" align="center">
-                        <Text size="sm" color="dimmed">
-                            Cores: {stats.cpu.cores}
-                        </Text>
-                        <Text size="sm" color="dimmed">
-                            Idle: {stats.cpu.idle.toFixed(1)}%
-                        </Text>
-                        <Text size="sm" color="dimmed">
-                            Uptime: {stats.cpu.uptime}
-                        </Text>
-                        <Text size="sm" color="dimmed">
-                            Load: {stats.cpu.load.join(', ')}
-                        </Text>
-                    </Group>
-
-                    <Divider my="xs" />
-
-                    <Text size="sm" color="dimmed" mb={5}>
-                        CPU usage (detailed) history
-                    </Text>
-                    <CompositeChart
-                        h={200}
-                        data={cpuChartData}
-                        dataKey="time"
-                        yAxisProps={{ domain: [0, 100] }}
-                        series={[
-                            { name: 'user', color: 'blue.5', type: 'line' },
-                            { name: 'sys', color: 'red.5', type: 'line' },
-                            { name: 'iowait', color: 'yellow.5', type: 'line' },
-                            { name: 'steal', color: 'pink.5', type: 'line' },
-                            { name: 'idle', color: 'gray.5', type: 'line' },
-                        ]}
-                        xAxisProps={{
-                            tickFormatter: (v) => formatTimeTick(v),
-                        }}
-                    />
-                </Card>
-
-                <Card radius="md" withBorder p="md">
-                    <Group justify="space-between" align="center" mb="xs">
-                        <Group align="center">
-                            <IconDeviceDesktopAnalytics size={28} />
-                            <Text size="xl" fw={700}>
-                                {stats.memory.usage}%
-                            </Text>
-                        </Group>
-                        <Text size="sm" color="dimmed">
-                            Memory Usage
-                        </Text>
-                    </Group>
-
-                    <Divider my="xs" />
-
-                    <Group justify="center" mt="md">
-                        <DonutChart size={140} thickness={20} data={memoryDonutData} />
-                        <Group>
+                    <Skeleton visible={!stats} radius="md">
+                        <Group justify="space-between" align="center" mb="xs">
+                            <Group align="center">
+                                <IconCpu size={28} />
+                                <Text size="xl" fw={700}>
+                                    {stats ? Math.round(stats.cpu.usage) : ''}
+                                </Text>
+                            </Group>
                             <Text size="sm" color="dimmed">
-                                Free: {stats.memory.free}M
+                                CPU Usage
+                            </Text>
+                        </Group>
+
+                        <Divider my="xs" />
+
+                        <Group justify="space-between" align="center">
+                            <Text size="sm" color="dimmed">
+                                Sys: {stats ? stats.cpu.sys.toFixed(1) : ''}
                             </Text>
                             <Text size="sm" color="dimmed">
-                                Used: {stats.memory.used}M
+                                User: {stats ? stats.cpu.user.toFixed(1) : ''}
                             </Text>
                             <Text size="sm" color="dimmed">
-                                Cache: {stats.memory.pageCache}M
+                                iowait: {stats ? stats.cpu.iowait.toFixed(1) : ''}
+                            </Text>
+                            <Text size="sm" color="dimmed">
+                                Steal: {stats ? stats.cpu.steal.toFixed(1) : ''}
                             </Text>
                         </Group>
-                    </Group>
 
-                    <Divider my="xs" />
+                        <Divider my="xs" />
 
-                    <Text size="sm" color="dimmed" mb={5}>
-                        Memory usage history
-                    </Text>
-                    <CompositeChart
-                        h={150}
-                        data={memChartData}
-                        dataKey="time"
-                        series={[
-                            { name: 'used', color: 'red.5', type: 'line' },
-                            { name: 'free', color: 'teal.5', type: 'line' },
-                            { name: 'cache', color: 'blue.5', type: 'line' },
-                        ]}
-                        xAxisProps={{ tickFormatter: formatTimeTick }}
-                    />
+                        <Group justify="space-between" align="center">
+                            <Text size="sm" color="dimmed">
+                                Cores: {stats ? stats.cpu.cores : ''}
+                            </Text>
+                            <Text size="sm" color="dimmed">
+                                Idle: {stats ? stats.cpu.idle.toFixed(1) : ''}
+                            </Text>
+                            <Text size="sm" color="dimmed">
+                                Uptime: {stats ? stats.cpu.uptime : ''}
+                            </Text>
+                            <Text size="sm" color="dimmed">
+                                Load: {stats ? stats.cpu.load.join(', ') : ''}
+                            </Text>
+                        </Group>
+
+                        <Divider my="xs" />
+
+                        <Text size="sm" color="dimmed" mb="xs">
+                            CPU usage (detailed) history
+                        </Text>
+                        <CompositeChart
+                            h={200}
+                            data={cpuChartData}
+                            dataKey="time"
+                            yAxisProps={{ domain: [0, 100] }}
+                            series={[
+                                { name: 'user', color: 'blue.5', type: 'line' },
+                                { name: 'sys', color: 'red.5', type: 'line' },
+                                { name: 'iowait', color: 'yellow.5', type: 'line' },
+                                { name: 'steal', color: 'pink.5', type: 'line' },
+                                { name: 'idle', color: 'gray.5', type: 'line' },
+                            ]}
+                            xAxisProps={{
+                                tickFormatter: (v) => formatTimeTick(v),
+                            }}
+                        />
+                    </Skeleton>
                 </Card>
 
+                {/* Network Card */}
                 <Card radius="md" withBorder p="md">
-                    <Group justify="space-between" align="center" mb="xs">
-                        <Group align="center">
-                            <IconServer size={28} />
-                            <Text size="xl" fw={700}>
-                                RX: {stats.network.rxSpeed}
+                    <Skeleton visible={!stats} radius="md">
+                        <Group justify="space-between" align="center" mb="xs">
+                            <Group align="center">
+                                <IconServer size={28} />
+                                <Text size="xl" fw={700}>
+                                    RX: {stats ? stats.network.rxSpeed : ''}
+                                </Text>
+                            </Group>
+                            <Text size="sm" color="dimmed">
+                                Network
                             </Text>
                         </Group>
-                        <Text size="sm" color="dimmed">
-                            Network
-                        </Text>
-                    </Group>
 
-                    <Divider my="xs" />
+                        <Divider my="xs" />
 
-                    <Group justify="space-between" align="center">
-                        <Text size="sm" color="dimmed">
-                            TX: {stats.network.txSpeed}
-                        </Text>
-                        <Text size="sm" color="dimmed">
-                            In: {stats.network.rxTotal}
-                        </Text>
-                        <Text size="sm" color="dimmed">
-                            Out: {stats.network.txTotal}
-                        </Text>
-                    </Group>
+                        <Group justify="space-between" align="center">
+                            <Text size="sm" color="dimmed">
+                                TX: {stats ? stats.network.txSpeed : ''}
+                            </Text>
+                            <Text size="sm" color="dimmed">
+                                In: {stats ? stats.network.rxTotal : ''}
+                            </Text>
+                            <Text size="sm" color="dimmed">
+                                Out: {stats ? stats.network.txTotal : ''}
+                            </Text>
+                        </Group>
 
-                    <Divider my="xs" />
+                        <Divider my="xs" />
 
-                    <Group justify="space-between" align="center">
-                        <Text size="sm" color="dimmed">
-                            Retrans: {stats.network.retrans}
-                        </Text>
-                        <Text size="sm" color="dimmed">
-                            Active: {stats.network.active}
-                        </Text>
-                        <Text size="sm" color="dimmed">
-                            Passive: {stats.network.passive}
-                        </Text>
-                        <Text size="sm" color="dimmed">
-                            Fails: {stats.network.fails}
-                        </Text>
-                        <Text size="sm" color="dimmed">
-                            Ifaces: {stats.network.interfaces}
-                        </Text>
-                    </Group>
+                        <Group justify="space-between" align="center">
+                            <Text size="sm" color="dimmed">
+                                Retrans: {stats ? stats.network.retrans : ''}
+                            </Text>
+                            <Text size="sm" color="dimmed">
+                                Active: {stats ? stats.network.active : ''}
+                            </Text>
+                            <Text size="sm" color="dimmed">
+                                Passive: {stats ? stats.network.passive : ''}
+                            </Text>
+                            <Text size="sm" color="dimmed">
+                                Fails: {stats ? stats.network.fails : ''}
+                            </Text>
+                            <Text size="sm" color="dimmed">
+                                Ifaces: {stats ? stats.network.interfaces : ''}
+                            </Text>
+                        </Group>
 
-                    <Divider my="xs" />
+                        <Divider my="xs" />
 
-                    <Text size="sm" color="dimmed" mb={5}>
-                        Network speed history
-                    </Text>
-                    <LineChart
-                        h={150}
-                        data={netChartData}
-                        dataKey="time"
-                        series={[
-                            { name: 'rx', label: 'Rx speed', color: 'green.5' },
-                            { name: 'tx', label: 'Tx speed', color: 'orange.5' },
-                        ]}
-                        xAxisProps={{ tickFormatter: formatTimeTick }}
-                        yAxisProps={{ domain: ['auto', 'auto'] }}
-                    />
+                        <Text size="sm" color="dimmed" mb="xs">
+                            Network speed history
+                        </Text>
+                        <LineChart
+                            h={200}
+                            data={netChartData}
+                            dataKey="time"
+                            unit=' B/s'
+                            valueFormatter={(value: number) => new Intl.NumberFormat('ru-RU').format(Math.round(value))}
+                            series={[
+                                {
+                                    name: 'rx',
+                                    label: 'Rx speed',
+                                    color: 'green.5',
+                                },
+                                {
+                                    name: 'tx',
+                                    label: 'Tx speed',
+                                    color: 'orange.5',
+                                },
+                            ]}
+                            xAxisProps={{ tickFormatter: formatTimeTick }}
+                            yAxisProps={{ domain: ['auto', 'auto'] }}
+                        />
+                    </Skeleton>
                 </Card>
 
+                {/* Memory Card */}
                 <Card radius="md" withBorder p="md">
-                    <Group justify="space-between" align="center" mb="xs">
-                        <Group align="center">
-                            <IconDatabase size={28} />
-                            <Text size="xl" fw={700}>
-                                {stats.filesystem.used}M / {stats.filesystem.total}M
+                    <Skeleton visible={!stats} radius="md">
+                        <Group justify="space-between" align="center" mb="xs">
+                            <Group align="center">
+                                <IconDeviceDesktopAnalytics size={28} />
+                                <Text size="xl" fw={700}>
+                                    {stats ? stats.memory.usage : ''}%
+                                </Text>
+                            </Group>
+                            <Text size="sm" color="dimmed">
+                                Memory Usage
                             </Text>
                         </Group>
-                        <Text size="sm" color="dimmed">
-                            {stats.filesystem.name}
+
+                        <Divider my="xs" />
+
+                        <Group justify="center" mt="md">
+                            <DonutChart size={140} thickness={20} data={memoryDonutData} />
+                            <Group>
+                                <Text size="sm" c="dimmed">
+                                    Free: {stats ? stats.memory.free : ''}M
+                                </Text>
+                                <Text size="sm" c="dimmed">
+                                    Used: {stats ? stats.memory.used : ''}M
+                                </Text>
+                                <Text size="sm" c="dimmed">
+                                    Cache: {stats ? stats.memory.pageCache : ''}M
+                                </Text>
+                            </Group>
+                        </Group>
+                    </Skeleton>
+                </Card>
+
+                {/* Filesystem Card */}
+                <Card radius="md" withBorder p="md">
+                    <Skeleton visible={!stats} radius="md">
+                        <Group justify="space-between" align="center" mb="xs">
+                            <Group align="center">
+                                <IconDatabase size={28} />
+                                <Text size="xl" fw={700}>
+                                    {stats ? `${stats.filesystem.used}M / ${stats.filesystem.total}M` : ''}
+                                </Text>
+                            </Group>
+                            <Text size="sm" c="dimmed">
+                                {stats ? stats.filesystem.name : ''}
+                            </Text>
+                        </Group>
+
+                        <Divider my="xs" />
+
+                        <Progress value={fsUsedPercent} c="red" size="lg" radius="lg" />
+                        <Text mt="sm" c="dimmed" size="sm">
+                            {stats ? Math.round(fsUsedPercent) + '%' : ''}
                         </Text>
-                    </Group>
-
-                    <Divider my="xs" />
-
-                    <Progress value={fsUsedPercent} color="red" size="lg" radius="lg" />
-                    <Text mt="sm" color="dimmed" size="sm">
-                        {Math.round(fsUsedPercent)}%
-                    </Text>
+                    </Skeleton>
                 </Card>
             </SimpleGrid>
         </Container>
