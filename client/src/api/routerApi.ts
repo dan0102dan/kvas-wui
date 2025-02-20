@@ -68,20 +68,19 @@ export const getSystemStats = async (): Promise<{
         steal: number
         cores: number
         idle: number
-        uptime: string
+        uptimeSec: number
         load: [number, number, number]
     }
     memory: {
         free: number
         used: number
         pageCache: number
-        usage: number
     }
     network: {
-        rxSpeed: string
-        txSpeed: string
-        rxTotal: string
-        txTotal: string
+        rxSpeedBps: number
+        txSpeedBps: number
+        rxTotal: number
+        txTotal: number
         retrans: number
         active: number
         passive: number

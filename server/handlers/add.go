@@ -28,7 +28,7 @@ func AddHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-func parseAddOutput(output, domain string, err error) (AddResponse, int) {
+func parseAddOutput(output, domain string, _ error) (AddResponse, int) {
 	cleaned := utils.CleanString(output)
 
 	switch {

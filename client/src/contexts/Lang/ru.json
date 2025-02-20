@@ -46,7 +46,7 @@
             "title": "Список доменов",
             "error": {
                 "loadingDomains": "Ошибка при загрузке доменов",
-                "duplicateSingle": "уже присутствует в списке",
+                "duplicate": "уже присутствует в списке",
                 "duplicateAllTitle": "Дубликаты",
                 "duplicateAllMessage": "Следующие домены уже присутствуют в списке:",
                 "clearingDomains": "Ошибка при очистке списка доменов",

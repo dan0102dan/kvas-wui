@@ -1,1 +1,0 @@
-export { type ServiceData, ALL_SERVICES } from './servicesData'

@@ -28,7 +28,7 @@ func DelHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-func parseDelOutput(output, domain string, err error) (DelResponse, int) {
+func parseDelOutput(output, domain string, _ error) (DelResponse, int) {
 	cleaned := utils.CleanString(output)
 
 	switch {
