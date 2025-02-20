@@ -1,12 +1,12 @@
 {
   "files": {
     "main.css": "/kvas-wui/static/css/main.e734101f.css",
-    "main.js": "/kvas-wui/static/js/main.50e1aa5c.js",
+    "main.js": "/kvas-wui/static/js/main.d05469f3.js",
     "static/js/300.3a2e740e.chunk.js": "/kvas-wui/static/js/300.3a2e740e.chunk.js",
     "index.html": "/kvas-wui/index.html"
   },
   "entrypoints": [
     "static/css/main.e734101f.css",
-    "static/js/main.50e1aa5c.js"
+    "static/js/main.d05469f3.js"
   ]
 }
