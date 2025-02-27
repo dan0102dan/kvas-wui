@@ -1,11 +1,7 @@
-import React, { createContext, useContext, useState, useEffect } from 'react'
-import ru from './ru.json'
+import React, { createContext, useContext, useState } from 'react'
+import { ja, en, fr, ge, sp, po, ru, ch } from './translations'
 
-// Динамически подгружаемые переводы
-const translations = {
-    ru: () => Promise.resolve({ default: ru }),
-    en: () => import('./en.json'),
-}
+const translations = { ja, en, fr, ge, sp, po, ru, ch }
 
 export type Lang = keyof typeof translations
 export const availableTranslations = Object.keys(translations) as Array<Lang>
@@ -22,29 +18,15 @@ const LangContext = createContext<{
 
 export const LangProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const getDefaultLang = (): Lang => {
-        // Берём из localStorage (если есть)
         const storedLang = localStorage.getItem('lang') as Lang | null
         if (storedLang && availableTranslations.includes(storedLang)) {
             return storedLang
         }
-        // fallback
+
         return 'ru'
     }
 
-    const [lang, setLangState] = useState<Lang>('ru')
-    const [currentTranslations, setCurrentTranslations] = useState<any>({})
-
-    useEffect(() => {
-        // При первом рендере устанавливаем lang из localStorage
-        const defaultLang = getDefaultLang()
-        setLangState(defaultLang)
-    }, [])
-
-    useEffect(() => {
-        translations[lang]().then((module) => {
-            setCurrentTranslations(module.default)
-        })
-    }, [lang])
+    const [lang, setLangState] = useState<Lang>(getDefaultLang())
 
     const setLang = (newLang: Lang) => {
         setLangState(newLang)
@@ -53,7 +35,7 @@ export const LangProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const t = (path: string): string => {
         const parts = path.split('.')
-        let result = currentTranslations
+        let result: any = translations[lang]
         for (const part of parts) {
             if (!result[part]) return path
             result = result[part]

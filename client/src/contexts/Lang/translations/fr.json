@@ -1,0 +1,123 @@
+{
+    "settings": {
+        "language": {
+            "change": "Changer de langue",
+            "ch": "Chinois 🇨🇳",
+            "en": "Anglais 🇺🇸",
+            "fr": "Français 🇫🇷",
+            "ge": "Allemand 🇩🇪",
+            "ja": "Japonais 🇯🇵",
+            "po": "Portugais 🇵🇹",
+            "ru": "Russe 🇷🇺",
+            "sp": "Espagnol 🇪🇸"
+        },
+        "theme": {
+            "change": "Changer de thème",
+            "light": "Clair",
+            "dark": "Sombre",
+            "auto": "Automatique"
+        },
+        "update": {
+            "available": "Mise à jour disponible",
+            "install": "Installer",
+            "started": "Mise à jour démarrée",
+            "warning": "La page se rechargera automatiquement dans 15 secondes",
+            "error": "Erreur lors du démarrage de la mise à jour"
+        }
+    },
+    "notifications": {
+        "successTitle": "Succès",
+        "successMessage": "Votre message a été envoyé avec succès !",
+        "errorTitle": "Erreur",
+        "errorMessage": "Une erreur s'est produite lors de l'envoi du message."
+    },
+    "pages": {
+        "NotFound": {
+            "title": "Rien n'a été trouvé",
+            "description": "La page que vous essayez d'ouvrir n'existe pas. Vous avez peut-être mal saisi l'adresse ou la page a été déplacée. Si vous pensez qu'il s'agit d'une erreur, contactez le support.",
+            "button": "Retour à la page d'accueil"
+        },
+        "About": {
+            "_": "À propos de nous",
+            "project": "Projet",
+            "description": "Kvas est un utilitaire pratique et intuitif pour gérer l'Internet domestique. Il vous permet de configurer facilement une connexion VPN, d'optimiser les paramètres DNS et bien plus encore, assurant la stabilité et la sécurité du réseau. Tout cela dans une interface simple !",
+            "slogan": "Rendre le routeur plus intelligent",
+            "tgChannel": "Canal Telegram",
+            "githubRepo": "Dépôt GitHub",
+            "whyUs": "Pourquoi nous ?",
+            "whyUsDescription": "Parfois, les solutions habituelles ne suffisent plus. Nous offrons une approche innovante qui change la perception du routage et de la sécurité des données."
+        },
+        "DomainList": {
+            "_": "Liste sécurisée",
+            "title": "Liste de domaines",
+            "error": {
+                "loadingDomains": "Erreur lors du chargement des domaines",
+                "duplicate": "est déjà présent dans la liste",
+                "duplicateAllTitle": "Doublons",
+                "duplicateAllMessage": "Les domaines suivants sont déjà présents dans la liste :",
+                "clearingDomains": "Erreur lors de la suppression de la liste de domaines",
+                "deletingDomain": "Erreur lors de la suppression du domaine"
+            },
+            "inputPlaceholder": "Saisissez un domaine ou collez une liste...",
+            "fillRecommended": "Compléter avec les recommandés",
+            "add": "Ajouter",
+            "missingAlert": {
+                "title": "Complétez la liste",
+                "message": "Il manque des domaines recommandés dans votre liste :"
+            },
+            "loading": "Chargement des domaines...",
+            "loadingInfo": "Veuillez patienter, nous récupérons les données.",
+            "emptyTitle": "Vide",
+            "emptySubtitle": "Ajoutez de nouveaux domaines pour qu'ils apparaissent ici.",
+            "filter": {
+                "emptyTitle": "Aucun domaine pour le filtre sélectionné",
+                "emptySubtitle": "Essayez de changer le filtre ou d'ajouter des domaines manuellement."
+            },
+            "table": {
+                "domain": "Domaine",
+                "service": "Service"
+            },
+            "deleteSelected": "Supprimer la sélection"
+        },
+        "Tunnel": {
+            "_": "Connexions",
+            "description": "Ci-dessous figurent tous les services participant au fonctionnement de Kvas",
+            "dns": "Paramètres DNS",
+            "vpn": "Connexion VPN",
+            "connection": "Connexion à Internet",
+            "save": "Enregistrer"
+        },
+        "SystemStatus": {
+            "_": "État du système",
+            "title": "Informations sur le système",
+            "error": "Erreur",
+            "errorMessage": "Impossible de récupérer les informations du système",
+            "cpuUsage": "Utilisation CPU",
+            "cpuSys": "Système",
+            "cpuUser": "Utilisateur",
+            "cpuIowait": "Attente I/O",
+            "cpuSteal": "Steal",
+            "cpuCores": "Cœurs",
+            "cpuIdle": "Inactif",
+            "cpuUptime": "Uptime",
+            "cpuLoad": "Charge",
+            "cpuHistory": "Historique de la charge CPU",
+            "network": "Réseau",
+            "networkRx": "Réception",
+            "networkTx": "Transmission",
+            "networkIn": "Reçu",
+            "networkOut": "Envoyé",
+            "networkRetrans": "Réessais",
+            "networkActive": "Actives",
+            "networkPassive": "Passives",
+            "networkFails": "Erreurs",
+            "networkIfaces": "Interfaces",
+            "networkHistory": "Historique du réseau",
+            "memoryUsage": "Utilisation de la mémoire",
+            "memoryFree": "Libre",
+            "memoryUsed": "Utilisée",
+            "memoryCache": "Cache",
+            "filesystem": "Système de fichiers"
+        }
+    }
+}

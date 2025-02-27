@@ -1,0 +1,123 @@
+{
+    "settings": {
+        "language": {
+            "change": "Cambiar idioma",
+            "ch": "Chino 🇨🇳",
+            "en": "Inglés 🇺🇸",
+            "fr": "Francés 🇫🇷",
+            "ge": "Alemán 🇩🇪",
+            "ja": "Japonés 🇯🇵",
+            "po": "Portugués 🇵🇹",
+            "ru": "Ruso 🇷🇺",
+            "sp": "Español 🇪🇸"
+        },
+        "theme": {
+            "change": "Cambiar tema",
+            "light": "Claro",
+            "dark": "Oscuro",
+            "auto": "Automático"
+        },
+        "update": {
+            "available": "Actualización disponible",
+            "install": "Instalar",
+            "started": "Actualización iniciada",
+            "warning": "La página se recargará automáticamente en 15 segundos",
+            "error": "Error al iniciar la actualización"
+        }
+    },
+    "notifications": {
+        "successTitle": "Éxito",
+        "successMessage": "¡Su mensaje se ha enviado correctamente!",
+        "errorTitle": "Error",
+        "errorMessage": "Se produjo un error al enviar el mensaje."
+    },
+    "pages": {
+        "NotFound": {
+            "title": "No se encontró nada",
+            "description": "La página que intenta abrir no existe. Es posible que haya escrito mal la dirección o la página haya sido movida. Si cree que se trata de un error, comuníquese con soporte.",
+            "button": "Volver a la página principal"
+        },
+        "About": {
+            "_": "Acerca de nosotros",
+            "project": "Proyecto",
+            "description": "Kvas es una herramienta cómoda e intuitiva para gestionar el Internet en casa. Con ella, podrá configurar fácilmente la conexión VPN, optimizar la configuración de DNS y mucho más, garantizando la estabilidad y la seguridad de la red. ¡Todo en una sola interfaz sencilla!",
+            "slogan": "Hacemos el router más inteligente",
+            "tgChannel": "Canal de Telegram",
+            "githubRepo": "Repositorio en GitHub",
+            "whyUs": "¿Por qué nosotros?",
+            "whyUsDescription": "A veces surgen situaciones en las que las soluciones habituales dejan de funcionar. Ofrecemos un enfoque innovador que cambia la forma de ver la seguridad de datos y la enrutación."
+        },
+        "DomainList": {
+            "_": "Lista segura",
+            "title": "Lista de dominios",
+            "error": {
+                "loadingDomains": "Error al cargar los dominios",
+                "duplicate": "ya está presente en la lista",
+                "duplicateAllTitle": "Duplicados",
+                "duplicateAllMessage": "Los siguientes dominios ya están en la lista:",
+                "clearingDomains": "Error al limpiar la lista de dominios",
+                "deletingDomain": "Error al eliminar el dominio"
+            },
+            "inputPlaceholder": "Ingrese un dominio o pegue una lista...",
+            "fillRecommended": "Completar con los recomendados",
+            "add": "Agregar",
+            "missingAlert": {
+                "title": "Complete la lista",
+                "message": "Faltan los siguientes dominios recomendados en su lista:"
+            },
+            "loading": "Cargando dominios...",
+            "loadingInfo": "Por favor, espere mientras obtenemos los datos.",
+            "emptyTitle": "Vacío",
+            "emptySubtitle": "Agregue nuevos dominios para que aparezcan aquí.",
+            "filter": {
+                "emptyTitle": "No hay dominios para el filtro seleccionado",
+                "emptySubtitle": "Intente cambiar el filtro o agregar dominios manualmente."
+            },
+            "table": {
+                "domain": "Dominio",
+                "service": "Servicio"
+            },
+            "deleteSelected": "Eliminar seleccionado"
+        },
+        "Tunnel": {
+            "_": "Conexiones",
+            "description": "A continuación, se enumeran todos los servicios que participan en el funcionamiento de Kvas",
+            "dns": "Configuración DNS",
+            "vpn": "Conexión VPN",
+            "connection": "Conexión a Internet",
+            "save": "Guardar"
+        },
+        "SystemStatus": {
+            "_": "Estado del sistema",
+            "title": "Información del sistema",
+            "error": "Error",
+            "errorMessage": "No se pudieron obtener los datos del sistema",
+            "cpuUsage": "Uso de CPU",
+            "cpuSys": "Sistema",
+            "cpuUser": "Usuario",
+            "cpuIowait": "Espera de I/O",
+            "cpuSteal": "Steal",
+            "cpuCores": "Núcleos",
+            "cpuIdle": "Inactivo",
+            "cpuUptime": "Tiempo activo",
+            "cpuLoad": "Carga",
+            "cpuHistory": "Historial de carga de CPU",
+            "network": "Red",
+            "networkRx": "Recepción",
+            "networkTx": "Transmisión",
+            "networkIn": "Recibido",
+            "networkOut": "Enviado",
+            "networkRetrans": "Reintentos",
+            "networkActive": "Activos",
+            "networkPassive": "Pasivos",
+            "networkFails": "Errores",
+            "networkIfaces": "Interfaces",
+            "networkHistory": "Historial de la red",
+            "memoryUsage": "Uso de memoria",
+            "memoryFree": "Libre",
+            "memoryUsed": "Usada",
+            "memoryCache": "Cache",
+            "filesystem": "Sistema de archivos"
+        }
+    }
+}

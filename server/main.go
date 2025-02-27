@@ -10,7 +10,6 @@ import (
 	"github.com/dan0102dan/kvas-wui/utils"
 )
 
-
 // Обработчик для раздачи статичных файлов и fallback для SPA
 func spaHandler(staticPath, indexPath string) http.Handler {
 	fs := http.FileServer(http.Dir(staticPath))
@@ -46,7 +45,7 @@ func main() {
 	apiMux.HandleFunc("/add", handlers.AddHandler)
 	apiMux.HandleFunc("/del", handlers.DelHandler)
 	apiMux.HandleFunc("/clear", handlers.ClearForceHandler)
-	apiMux.HandleFunc("/system-stats", handlers.SystemStatsHandler)
+	apiMux.HandleFunc("/system-stats", handlers.SystemStatsStreamHandler)
 
 	go func() {
 		log.Println("API server started on :5000")

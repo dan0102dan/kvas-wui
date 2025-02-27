@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
     Container,
     SimpleGrid,
@@ -18,11 +18,10 @@ import {
 } from '@tabler/icons-react'
 import { notifications } from '@mantine/notifications'
 import { DonutChart, LineChart, CompositeChart } from '@mantine/charts'
-import { getSystemStats } from '../api/routerApi'
+import { subscribeToSystemStats } from '../api/routerApi'
 import { useLang } from '../contexts'
 
 const MAX_POINTS = 30
-const FETCH_INTERVAL = 1000
 
 function pushPoint<T>(prev: T[], point: T): T[] {
     const updated = [...prev, point]
@@ -87,55 +86,46 @@ interface NetHistoryPoint {
 
 const SystemDashboard: React.FC = () => {
     const { t } = useLang()
-    const [stats, setStats] = useState<Awaited<ReturnType<typeof getSystemStats>> | null>(null)
+    const [stats, setStats] = useState<Parameters<Parameters<typeof subscribeToSystemStats>[0]>[0] | null>(null)
     const [cpuHistory, setCpuHistory] = useState<CPUHistoryPoint[]>([])
     const [netHistory, setNetHistory] = useState<NetHistoryPoint[]>([])
-    const intervalRef = useRef<NodeJS.Timeout | null>(null)
-
-    const fetchStats = async () => {
-        try {
-            const data = await getSystemStats()
-            setStats(data)
-            const now = Date.now()
-
-            setCpuHistory((prev) => {
-                const point: CPUHistoryPoint = {
-                    time: now,
-                    user: data.cpu.user,
-                    sys: data.cpu.sys,
-                    iowait: data.cpu.iowait,
-                    steal: data.cpu.steal,
-                    idle: data.cpu.idle,
-                }
-                return pushPoint(prev, point)
-            })
-
-            setNetHistory((prev) => {
-                const point: NetHistoryPoint = {
-                    time: now,
-                    rx: data.network.rxSpeedBps,
-                    tx: data.network.txSpeedBps,
-                }
-                return pushPoint(prev, point)
-            })
-        } catch (err) {
-            notifications.show({
-                title: 'Ошибка',
-                message: 'Не удалось загрузить данные о системе',
-                color: 'red',
-            })
-        }
-    }
 
     useEffect(() => {
-        fetchStats()
-        intervalRef.current = setInterval(fetchStats, FETCH_INTERVAL)
+        const unsubscribe = subscribeToSystemStats(
+            (data) => {
+                const now = Date.now()
+                setStats(data)
+                setCpuHistory((prev) =>
+                    pushPoint(prev, {
+                        time: now,
+                        user: data.cpu.user,
+                        sys: data.cpu.sys,
+                        iowait: data.cpu.iowait,
+                        steal: data.cpu.steal,
+                        idle: data.cpu.idle,
+                    })
+                )
+                setNetHistory((prev) =>
+                    pushPoint(prev, {
+                        time: now,
+                        rx: data.network.rxSpeedBps,
+                        tx: data.network.txSpeedBps,
+                    })
+                )
+            },
+            () => {
+                notifications.show({
+                    title: t('pages.SystemStatus.error'),
+                    message: t('pages.SystemStatus.errorMessage'),
+                    color: 'red',
+                })
+            }
+        )
         return () => {
-            if (intervalRef.current) clearInterval(intervalRef.current)
+            unsubscribe()
         }
-    }, [])
+    }, [t])
 
-    // Подготовка данных для графиков
     const cpuChartData = cpuHistory.map((p) => ({
         time: p.time,
         user: p.user,
@@ -144,6 +134,7 @@ const SystemDashboard: React.FC = () => {
         steal: p.steal,
         idle: p.idle,
     }))
+
     const netChartData = netHistory.map((p) => ({
         time: p.time,
         rx: p.rx,
@@ -151,10 +142,7 @@ const SystemDashboard: React.FC = () => {
     }))
 
     // Определяем единицу для отображения скорости сети
-    const maxSpeed = netChartData.reduce(
-        (max, item) => Math.max(max, item.rx, item.tx),
-        0
-    )
+    const maxSpeed = netChartData.reduce((max, item) => Math.max(max, item.rx, item.tx), 0)
     let speedFactor = 1
     let speedUnit = 'B/s'
     if (maxSpeed >= 1024 * 1024) {
@@ -165,35 +153,34 @@ const SystemDashboard: React.FC = () => {
         speedUnit = 'KB/s'
     }
 
-    // Donut chart для памяти
+    // Donut chart для памяти с переводом меток
     const memoryDonutData = [
-        { name: 'Free', value: stats?.memory.free || 0, color: 'teal' },
-        { name: 'Used', value: stats?.memory.used || 0, color: 'red' },
-        { name: 'Cache', value: stats?.memory.pageCache || 0, color: 'blue' },
+        { name: t('pages.SystemStatus.memoryFree'), value: stats?.memory.free || 0, color: 'teal' },
+        { name: t('pages.SystemStatus.memoryUsed'), value: stats?.memory.used || 0, color: 'red' },
+        { name: t('pages.SystemStatus.memoryCache'), value: stats?.memory.pageCache || 0, color: 'blue' },
     ]
 
     const totalMemory = stats ? stats.memory.free + stats.memory.used + stats.memory.pageCache : 0
     const memoryUsagePercent = totalMemory > 0 ? Math.round((stats!.memory.used / totalMemory) * 100) : 0
 
-    const fsUsedPercent =
-        stats && stats.filesystem.total > 0
-            ? (stats.filesystem.used / stats.filesystem.total) * 100
-            : 0
+    const fsUsedPercent = stats && stats.filesystem.total > 0
+        ? (stats.filesystem.used / stats.filesystem.total) * 100
+        : 0
 
     return (
         <Container py="xl">
             <Title mb="lg">{t('pages.SystemStatus.title')}</Title>
             <SimpleGrid cols={{ base: 1, md: 2 }} spacing="lg">
                 {/* CPU Card */}
-                <Card withBorder pt='xs'>
+                <Card withBorder pt="xs">
                     <Skeleton visible={!stats}>
-                        <Group justify='space-between' wrap='nowrap'>
+                        <Group justify="space-between" wrap="nowrap">
                             <div>
                                 <Text size="xl">
                                     {stats ? Math.round(stats.cpu.usage) : ''}
                                 </Text>
                                 <Text size="sm" color="dimmed">
-                                    CPU Usage
+                                    {t('pages.SystemStatus.cpuUsage')}
                                 </Text>
                             </div>
                             <IconCpu size={32} />
@@ -203,16 +190,16 @@ const SystemDashboard: React.FC = () => {
 
                         <Group justify="space-between" mb="xs">
                             <Text size="sm" color="dimmed">
-                                Sys: {stats ? stats.cpu.sys.toFixed(1) : ''}
+                                {t('pages.SystemStatus.cpuSys')}: {stats ? stats.cpu.sys.toFixed(1) : ''}
                             </Text>
                             <Text size="sm" color="dimmed">
-                                User: {stats ? stats.cpu.user.toFixed(1) : ''}
+                                {t('pages.SystemStatus.cpuUser')}: {stats ? stats.cpu.user.toFixed(1) : ''}
                             </Text>
                             <Text size="sm" color="dimmed">
-                                iowait: {stats ? stats.cpu.iowait.toFixed(1) : ''}
+                                {t('pages.SystemStatus.cpuIowait')}: {stats ? stats.cpu.iowait.toFixed(1) : ''}
                             </Text>
                             <Text size="sm" color="dimmed">
-                                Steal: {stats ? stats.cpu.steal.toFixed(1) : ''}
+                                {t('pages.SystemStatus.cpuSteal')}: {stats ? stats.cpu.steal.toFixed(1) : ''}
                             </Text>
                         </Group>
 
@@ -220,23 +207,23 @@ const SystemDashboard: React.FC = () => {
 
                         <Group justify="space-between" mb="xs">
                             <Text size="sm" color="dimmed">
-                                Cores: {stats ? stats.cpu.cores : ''}
+                                {t('pages.SystemStatus.cpuCores')}: {stats ? stats.cpu.cores : ''}
                             </Text>
                             <Text size="sm" color="dimmed">
-                                Idle: {stats ? stats.cpu.idle.toFixed(1) : ''}
+                                {t('pages.SystemStatus.cpuIdle')}: {stats ? stats.cpu.idle.toFixed(1) : ''}
                             </Text>
                             <Text size="sm" color="dimmed">
-                                Uptime: {stats ? formatUptime(stats.cpu.uptimeSec) : ''}
+                                {t('pages.SystemStatus.cpuUptime')}: {stats ? formatUptime(stats.cpu.uptimeSec) : ''}
                             </Text>
                             <Text size="sm" color="dimmed">
-                                Load: {stats ? stats.cpu.load.join(', ') : ''}
+                                {t('pages.SystemStatus.cpuLoad')}: {stats ? stats.cpu.load.join(', ') : ''}
                             </Text>
                         </Group>
 
                         <Divider my="xs" />
 
                         <Text size="sm" color="dimmed" mb="xs">
-                            CPU usage (detailed) history
+                            {t('pages.SystemStatus.cpuHistory')}
                         </Text>
                         <CompositeChart
                             h={200}
@@ -258,15 +245,15 @@ const SystemDashboard: React.FC = () => {
                 </Card>
 
                 {/* Network Card */}
-                <Card withBorder pt='xs'>
+                <Card withBorder pt="xs">
                     <Skeleton visible={!stats}>
-                        <Group justify='space-between' wrap='nowrap'>
+                        <Group justify="space-between" wrap="nowrap">
                             <div>
                                 <Text size="xl">
-                                    RX: {stats ? formatSpeed(stats.network.rxSpeedBps) : ''}
+                                    {t('pages.SystemStatus.networkRx')}: {stats ? formatSpeed(stats.network.rxSpeedBps) : ''}
                                 </Text>
                                 <Text size="sm" color="dimmed" mb="xs">
-                                    Network
+                                    {t('pages.SystemStatus.network')}
                                 </Text>
                             </div>
                             <IconServer size={32} />
@@ -276,13 +263,13 @@ const SystemDashboard: React.FC = () => {
 
                         <Group justify="space-between" mb="xs">
                             <Text size="sm" color="dimmed">
-                                TX: {stats ? formatSpeed(stats.network.txSpeedBps) : ''}
+                                {t('pages.SystemStatus.networkTx')}: {stats ? formatSpeed(stats.network.txSpeedBps) : ''}
                             </Text>
                             <Text size="sm" color="dimmed">
-                                In: {stats ? formatBytes(stats.network.rxTotal) : ''}
+                                {t('pages.SystemStatus.networkIn')}: {stats ? formatBytes(stats.network.rxTotal) : ''}
                             </Text>
                             <Text size="sm" color="dimmed">
-                                Out: {stats ? formatBytes(stats.network.txTotal) : ''}
+                                {t('pages.SystemStatus.networkOut')}: {stats ? formatBytes(stats.network.txTotal) : ''}
                             </Text>
                         </Group>
 
@@ -290,26 +277,26 @@ const SystemDashboard: React.FC = () => {
 
                         <Group justify="space-between" mb="xs">
                             <Text size="sm" color="dimmed">
-                                Retrans: {stats ? stats.network.retrans : ''}
+                                {t('pages.SystemStatus.networkRetrans')}: {stats ? stats.network.retrans : ''}
                             </Text>
                             <Text size="sm" color="dimmed">
-                                Active: {stats ? stats.network.active : ''}
+                                {t('pages.SystemStatus.networkActive')}: {stats ? stats.network.active : ''}
                             </Text>
                             <Text size="sm" color="dimmed">
-                                Passive: {stats ? stats.network.passive : ''}
+                                {t('pages.SystemStatus.networkPassive')}: {stats ? stats.network.passive : ''}
                             </Text>
                             <Text size="sm" color="dimmed">
-                                Fails: {stats ? stats.network.fails : ''}
+                                {t('pages.SystemStatus.networkFails')}: {stats ? stats.network.fails : ''}
                             </Text>
                             <Text size="sm" color="dimmed">
-                                Ifaces: {stats ? stats.network.interfaces : ''}
+                                {t('pages.SystemStatus.networkIfaces')}: {stats ? stats.network.interfaces : ''}
                             </Text>
                         </Group>
 
                         <Divider my="xs" />
 
                         <Text size="sm" color="dimmed" mb="xs">
-                            Network speed history
+                            {t('pages.SystemStatus.networkHistory')}
                         </Text>
                         <LineChart
                             h={200}
@@ -317,13 +304,11 @@ const SystemDashboard: React.FC = () => {
                             dataKey="time"
                             unit={speedUnit}
                             valueFormatter={(value: number) =>
-                                new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 2 }).format(
-                                    value / speedFactor
-                                )
+                                new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 2 }).format(value / speedFactor)
                             }
                             series={[
-                                { name: 'rx', label: 'Rx speed', color: 'green' },
-                                { name: 'tx', label: 'Tx speed', color: 'orange' },
+                                { name: 'rx', label: t('pages.SystemStatus.networkRx'), color: 'green' },
+                                { name: 'tx', label: t('pages.SystemStatus.networkTx'), color: 'orange' },
                             ]}
                             xAxisProps={{ tickFormatter: formatTimeTick }}
                             yAxisProps={{ domain: ['auto', 'auto'] }}
@@ -332,15 +317,15 @@ const SystemDashboard: React.FC = () => {
                 </Card>
 
                 {/* Memory Card */}
-                <Card withBorder pt='xs'>
+                <Card withBorder pt="xs">
                     <Skeleton visible={!stats}>
-                        <Group justify='space-between' wrap='nowrap'>
+                        <Group justify="space-between" wrap="nowrap">
                             <div>
                                 <Text size="xl">
                                     {stats ? memoryUsagePercent : ''}%
                                 </Text>
                                 <Text size="sm" color="dimmed">
-                                    Memory Usage
+                                    {t('pages.SystemStatus.memoryUsage')}
                                 </Text>
                             </div>
                             <IconDeviceDesktopAnalytics size={32} />
@@ -351,13 +336,13 @@ const SystemDashboard: React.FC = () => {
                             <DonutChart size={140} thickness={20} data={memoryDonutData} />
                             <Group gap={4}>
                                 <Text size="sm" color="dimmed">
-                                    Free: {stats ? stats.memory.free : ''}M
+                                    {t('pages.SystemStatus.memoryFree')}: {stats ? stats.memory.free : ''}M
                                 </Text>
                                 <Text size="sm" color="dimmed">
-                                    Used: {stats ? stats.memory.used : ''}M
+                                    {t('pages.SystemStatus.memoryUsed')}: {stats ? stats.memory.used : ''}M
                                 </Text>
                                 <Text size="sm" color="dimmed">
-                                    Cache: {stats ? stats.memory.pageCache : ''}M
+                                    {t('pages.SystemStatus.memoryCache')}: {stats ? stats.memory.pageCache : ''}M
                                 </Text>
                             </Group>
                         </Group>
@@ -365,15 +350,15 @@ const SystemDashboard: React.FC = () => {
                 </Card>
 
                 {/* Filesystem Card */}
-                <Card withBorder pt='xs'>
+                <Card withBorder pt="xs">
                     <Skeleton visible={!stats}>
-                        <Group justify='space-between' wrap='nowrap'>
+                        <Group justify="space-between" wrap="nowrap">
                             <div>
                                 <Text size="xl">
                                     {stats ? `${stats.filesystem.used}M / ${stats.filesystem.total}M` : ''}
                                 </Text>
                                 <Text size="sm" color="dimmed">
-                                    {stats ? stats.filesystem.name : ''}
+                                    {t('pages.SystemStatus.filesystem')}
                                 </Text>
                             </div>
                             <IconDatabase size={32} />

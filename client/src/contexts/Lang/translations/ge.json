@@ -1,0 +1,123 @@
+{
+    "settings": {
+        "language": {
+            "change": "Sprache ändern",
+            "ch": "Chinesisch 🇨🇳",
+            "en": "Englisch 🇺🇸",
+            "fr": "Französisch 🇫🇷",
+            "ge": "Deutsch 🇩🇪",
+            "ja": "Japanisch 🇯🇵",
+            "po": "Portugiesisch 🇵🇹",
+            "ru": "Russisch 🇷🇺",
+            "sp": "Spanisch 🇪🇸"
+        },
+        "theme": {
+            "change": "Theme ändern",
+            "light": "Hell",
+            "dark": "Dunkel",
+            "auto": "Automatisch"
+        },
+        "update": {
+            "available": "Update verfügbar",
+            "install": "Installieren",
+            "started": "Update gestartet",
+            "warning": "Seite wird in 15 Sekunden automatisch neu geladen",
+            "error": "Fehler beim Starten des Updates"
+        }
+    },
+    "notifications": {
+        "successTitle": "Erfolg",
+        "successMessage": "Ihre Nachricht wurde erfolgreich gesendet!",
+        "errorTitle": "Fehler",
+        "errorMessage": "Bei der Übermittlung der Nachricht ist ein Fehler aufgetreten."
+    },
+    "pages": {
+        "NotFound": {
+            "title": "Nichts gefunden",
+            "description": "Die von Ihnen aufgerufene Seite existiert nicht. Möglicherweise haben Sie sich vertippt oder die Seite wurde verschoben. Wenn Sie glauben, dass dies ein Fehler ist, wenden Sie sich bitte an den Support.",
+            "button": "Zur Startseite zurückkehren"
+        },
+        "About": {
+            "_": "Über uns",
+            "project": "Projekt",
+            "description": "Kvas ist ein bequemes und intuitives Tool zur Verwaltung des Heimnetzwerks. Damit können Sie einfach eine VPN-Verbindung konfigurieren, DNS-Einstellungen optimieren und vieles mehr – für mehr Stabilität und Sicherheit im Netzwerk. Alles in einer einfachen Benutzeroberfläche!",
+            "slogan": "Wir machen den Router intelligenter",
+            "tgChannel": "Telegram-Kanal",
+            "githubRepo": "GitHub-Repository",
+            "whyUs": "Warum wir?",
+            "whyUsDescription": "Manchmal reichen herkömmliche Lösungen nicht mehr aus. Wir bieten einen innovativen Ansatz, der die Vorstellung von Routing und Datensicherheit verändert."
+        },
+        "DomainList": {
+            "_": "Sichere Liste",
+            "title": "Domänenliste",
+            "error": {
+                "loadingDomains": "Fehler beim Laden der Domänen",
+                "duplicate": "ist bereits in der Liste vorhanden",
+                "duplicateAllTitle": "Duplikate",
+                "duplicateAllMessage": "Die folgenden Domänen sind bereits in der Liste:",
+                "clearingDomains": "Fehler beim Löschen der Domänenliste",
+                "deletingDomain": "Fehler beim Löschen der Domäne"
+            },
+            "inputPlaceholder": "Geben Sie eine Domäne ein oder fügen Sie eine Liste ein...",
+            "fillRecommended": "Empfohlene hinzufügen",
+            "add": "Hinzufügen",
+            "missingAlert": {
+                "title": "Liste ergänzen",
+                "message": "In Ihrer Liste fehlen folgende empfohlene Domänen:"
+            },
+            "loading": "Lade Domänen...",
+            "loadingInfo": "Bitte warten Sie, während wir Daten abrufen.",
+            "emptyTitle": "Leer",
+            "emptySubtitle": "Fügen Sie neue Domänen hinzu, damit sie hier erscheinen.",
+            "filter": {
+                "emptyTitle": "Keine Domänen für den ausgewählten Filter",
+                "emptySubtitle": "Versuchen Sie, den Filter zu ändern oder Domänen manuell hinzuzufügen."
+            },
+            "table": {
+                "domain": "Domäne",
+                "service": "Dienst"
+            },
+            "deleteSelected": "Ausgewählte löschen"
+        },
+        "Tunnel": {
+            "_": "Verbindungen",
+            "description": "Im Folgenden sind alle Dienste aufgelistet, die an der Funktion von Kvas beteiligt sind",
+            "dns": "DNS-Einstellungen",
+            "vpn": "VPN-Verbindung",
+            "connection": "Internetverbindung",
+            "save": "Speichern"
+        },
+        "SystemStatus": {
+            "_": "Systemstatus",
+            "title": "Systeminformationen",
+            "error": "Fehler",
+            "errorMessage": "Systemdaten konnten nicht abgerufen werden",
+            "cpuUsage": "CPU-Auslastung",
+            "cpuSys": "System",
+            "cpuUser": "Benutzer",
+            "cpuIowait": "I/O-Warten",
+            "cpuSteal": "Steal",
+            "cpuCores": "Kerne",
+            "cpuIdle": "Leerlauf",
+            "cpuUptime": "Laufzeit",
+            "cpuLoad": "Last",
+            "cpuHistory": "CPU-Auslastungsverlauf",
+            "network": "Netzwerk",
+            "networkRx": "Empfangen",
+            "networkTx": "Senden",
+            "networkIn": "Empfangen",
+            "networkOut": "Gesendet",
+            "networkRetrans": "Wiederholungen",
+            "networkActive": "Aktiv",
+            "networkPassive": "Passiv",
+            "networkFails": "Fehler",
+            "networkIfaces": "Schnittstellen",
+            "networkHistory": "Netzwerkverlauf",
+            "memoryUsage": "Speichernutzung",
+            "memoryFree": "Frei",
+            "memoryUsed": "Genutzt",
+            "memoryCache": "Cache",
+            "filesystem": "Dateisystem"
+        }
+    }
+}

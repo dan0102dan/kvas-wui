@@ -1,7 +1,9 @@
 import axios from 'axios'
 
 export const apiClient = axios.create({
-    baseURL: 'http://my.keenetic.net:5000',
+    baseURL: process.env.NODE_ENV === 'production'
+        ? 'http://my.keenetic.net:5000'
+        : 'http://192.168.10.1:5000',
     withCredentials: false
 })
 
@@ -59,39 +61,62 @@ export const clearForce = async (): Promise<{ message: string; backup?: string }
     (await apiClient.get('/clear')).data
 )
 
-export const getSystemStats = async (): Promise<{
-    cpu: {
-        usage: number
-        sys: number
-        user: number
-        iowait: number
-        steal: number
-        cores: number
-        idle: number
-        uptimeSec: number
-        load: [number, number, number]
+export const subscribeToSystemStats = (
+    onEvent: (data: {
+        cpu: {
+            usage: number
+            sys: number
+            user: number
+            iowait: number
+            steal: number
+            cores: number
+            idle: number
+            uptimeSec: number
+            load: [number, number, number]
+        }
+        memory: {
+            free: number
+            used: number
+            pageCache: number
+        }
+        network: {
+            rxSpeedBps: number
+            txSpeedBps: number
+            rxTotal: number
+            txTotal: number
+            retrans: number
+            active: number
+            passive: number
+            fails: number
+            interfaces: number
+        }
+        filesystem: {
+            name: string
+            used: number
+            total: number
+        }
+    }) => void,
+    onError?: (error: any) => void
+): (() => void) => {
+    const eventSource = new EventSource(`${apiClient.defaults.baseURL}/system-stats`)
+
+    eventSource.onmessage = (event) => {
+        try {
+            onEvent(JSON.parse(event.data))
+        } catch (error) {
+            if (onError) {
+                onError(error)
+            }
+        }
     }
-    memory: {
-        free: number
-        used: number
-        pageCache: number
+
+    eventSource.onerror = (error) => {
+        if (onError) {
+            onError(error)
+        }
     }
-    network: {
-        rxSpeedBps: number
-        txSpeedBps: number
-        rxTotal: number
-        txTotal: number
-        retrans: number
-        active: number
-        passive: number
-        fails: number
-        interfaces: number
+
+    return () => {
+        eventSource.close()
     }
-    filesystem: {
-        name: string
-        used: number
-        total: number
-    }
-}> => {
-    return (await apiClient.get('/system-stats')).data
 }

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -72,17 +71,35 @@ var netState struct {
 	mu       sync.Mutex
 }
 
-// SystemStatsHandler — основной эндпоинт, который возвращает JSON со статистикой.
-func SystemStatsHandler(w http.ResponseWriter, r *http.Request) {
-	stats, err := getSystemStats()
-	if err != nil {
-		http.Error(w, "Failed to get system stats: "+err.Error(), http.StatusInternalServerError)
+func SystemStatsStreamHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("Connection", "keep-alive")
+
+	flusher, ok := w.(http.Flusher)
+	if !ok {
+		http.Error(w, "Streaming unsupported", http.StatusInternalServerError)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(stats); err != nil {
-		log.Printf("JSON encode error: %v", err)
+	ticker := time.NewTicker(1 * time.Second)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-r.Context().Done():
+			// Клиент отключился
+			return
+		case <-ticker.C:
+			stats, err := getSystemStats()
+			if err != nil {
+				fmt.Fprintf(w, "data: {\"error\": \"%s\"}\n\n", err.Error())
+			} else {
+				jsonBytes, _ := json.Marshal(stats)
+				fmt.Fprintf(w, "data: %s\n\n", jsonBytes)
+			}
+			flusher.Flush()
+		}
 	}
 }
 

@@ -5,18 +5,18 @@ import {
     Flex,
     Button,
     Center,
-    SimpleGrid,
     Badge,
     Group,
-    Card,
+    // SimpleGrid,
+    // Card,
 } from '@mantine/core'
 import {
     IconArrowRight,
     IconBrandTelegram,
     IconBrandGithub,
-    IconCookie,
-    IconGauge,
-    IconUser
+    // IconCookie,
+    // IconGauge,
+    // IconUser
 } from '@tabler/icons-react'
 import { NetworkBackground } from '../components'
 import { useLang } from '../contexts'
@@ -85,7 +85,7 @@ const About: React.FC = () => {
                 </Group>
             </Flex>
 
-            <Container size="lg" pb="xl">
+            {/* <Container size="lg" pb="xl">
                 <Title order={2} ta="center" mt="sm">
                     {t('pages.About.whyUs')}
                 </Title>
@@ -126,7 +126,7 @@ const About: React.FC = () => {
                         </Card>
                     ))}
                 </SimpleGrid>
-            </Container>
+            </Container> */}
             {/* Фоновый компонент */}
             <NetworkBackground
                 numberOfNodes={30}

@@ -1,0 +1,123 @@
+{
+    "settings": {
+        "language": {
+            "change": "言語を変更",
+            "ch": "中国語 🇨🇳",
+            "en": "英語 🇺🇸",
+            "fr": "フランス語 🇫🇷",
+            "ge": "ドイツ語 🇩🇪",
+            "ja": "日本語 🇯🇵",
+            "po": "ポルトガル語 🇵🇹",
+            "ru": "ロシア語 🇷🇺",
+            "sp": "スペイン語 🇪🇸"
+        },
+        "theme": {
+            "change": "テーマを変更",
+            "light": "ライト",
+            "dark": "ダーク",
+            "auto": "自動"
+        },
+        "update": {
+            "available": "更新が利用可能です",
+            "install": "インストール",
+            "started": "更新を開始しました",
+            "warning": "15秒後にページが自動的にリロードされます",
+            "error": "更新の開始時にエラーが発生しました"
+        }
+    },
+    "notifications": {
+        "successTitle": "成功",
+        "successMessage": "メッセージが正常に送信されました！",
+        "errorTitle": "エラー",
+        "errorMessage": "メッセージ送信中にエラーが発生しました。"
+    },
+    "pages": {
+        "NotFound": {
+            "title": "何も見つかりませんでした",
+            "description": "アクセスしようとしているページは存在しません。アドレスを間違えているか、ページが移動された可能性があります。エラーだと思われる場合はサポートに連絡してください。",
+            "button": "ホームページに戻る"
+        },
+        "About": {
+            "_": "私たちについて",
+            "project": "プロジェクト",
+            "description": "Kvasは家庭用インターネットを管理するための便利で直感的なユーティリティです。VPN接続の設定やDNSの最適化など、多くの機能を簡単に行い、ネットワークの安定とセキュリティを実現します。これらすべてがシンプルなインターフェースで利用できます！",
+            "slogan": "ルーターをもっと賢くする",
+            "tgChannel": "Telegramチャンネル",
+            "githubRepo": "GitHubリポジトリ",
+            "whyUs": "なぜ私たち？",
+            "whyUsDescription": "従来のソリューションでは対応しきれない状況が時々あります。私たちはルーティングとデータセキュリティに対する考え方を変える革新的なアプローチを提供します。"
+        },
+        "DomainList": {
+            "_": "安全リスト",
+            "title": "ドメインリスト",
+            "error": {
+                "loadingDomains": "ドメインの読み込み中にエラーが発生しました",
+                "duplicate": "はリストにすでに存在します",
+                "duplicateAllTitle": "重複",
+                "duplicateAllMessage": "以下のドメインはすでにリストに含まれています:",
+                "clearingDomains": "ドメインリストをクリア中にエラーが発生しました",
+                "deletingDomain": "ドメインの削除中にエラーが発生しました"
+            },
+            "inputPlaceholder": "ドメインを入力するか、リストを貼り付けてください…",
+            "fillRecommended": "推奨を補充",
+            "add": "追加",
+            "missingAlert": {
+                "title": "リストを補完してください",
+                "message": "以下の推奨ドメインがリストに含まれていません:"
+            },
+            "loading": "ドメインを読み込み中…",
+            "loadingInfo": "データを取得しています。しばらくお待ちください。",
+            "emptyTitle": "空",
+            "emptySubtitle": "新しいドメインを追加するとここに表示されます。",
+            "filter": {
+                "emptyTitle": "選択されたフィルターに該当するドメインがありません",
+                "emptySubtitle": "フィルターを変更するか、手動でドメインを追加してみてください。"
+            },
+            "table": {
+                "domain": "ドメイン",
+                "service": "サービス"
+            },
+            "deleteSelected": "選択した項目を削除"
+        },
+        "Tunnel": {
+            "_": "接続",
+            "description": "以下はKvasの動作に関わるすべてのサービスです",
+            "dns": "DNS設定",
+            "vpn": "VPN接続",
+            "connection": "インターネット接続",
+            "save": "保存"
+        },
+        "SystemStatus": {
+            "_": "システムステータス",
+            "title": "システム情報",
+            "error": "エラー",
+            "errorMessage": "システム情報を取得できませんでした",
+            "cpuUsage": "CPU使用率",
+            "cpuSys": "システム",
+            "cpuUser": "ユーザー",
+            "cpuIowait": "I/O待ち",
+            "cpuSteal": "Steal",
+            "cpuCores": "コア数",
+            "cpuIdle": "アイドル",
+            "cpuUptime": "稼働時間",
+            "cpuLoad": "負荷",
+            "cpuHistory": "CPU負荷履歴",
+            "network": "ネットワーク",
+            "networkRx": "受信",
+            "networkTx": "送信",
+            "networkIn": "受信量",
+            "networkOut": "送信量",
+            "networkRetrans": "再送",
+            "networkActive": "アクティブ",
+            "networkPassive": "パッシブ",
+            "networkFails": "エラー",
+            "networkIfaces": "インターフェース",
+            "networkHistory": "ネットワーク履歴",
+            "memoryUsage": "メモリ使用量",
+            "memoryFree": "空き",
+            "memoryUsed": "使用中",
+            "memoryCache": "キャッシュ",
+            "filesystem": "ファイルシステム"
+        }
+    }
+}
